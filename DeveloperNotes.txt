@@ -1,0 +1,540 @@
+===========================================================================Git Start--------------------------------------------------------------------------
+
+git config user.name my-name
+git config user.email my-email
+
+-> cd /path/to/your/project  											(Navigate to your project directory)
+-> git clone <remote-repository-URL>									(Clone an existing repository)
+-> git init																(Initialize a new Git repository: (For first time with new repo))
+-> git add .															(Add all the files to Git's staging area:)	 
+-> git add <file1> <file2>												(To add specific files)
+-> git diff																(View differences between files (before committing changes))
+-> git commit -m "Initial commit"										(Commit the changes with a message)
+-> git remote add origin https://github.com/username/repository.git  	(Add the remote repository )
+-> git remote -v														(Verify that the remote has been added)
+-> git push -u origin main												(Push the initial commit to the remote repository (set the upstream branch))
+-> git status															(Check the status of your repository)
+-> git pull origin main													(Pull the latest changes from the remote (if others are working on the repo))
+-> git log																(To view the commit history for your repository)
+-> git checkout <branch-name>											(Switch to a different branch)
+-> git checkout -b <new-branch-name>									(OR to create a new branch and switch to it)
+-> git merge feature-branch												(Merge a branch into your current branch To merge another branch (e.g., feature-branch) into your current branch)
+
+The most common commands:
+git status – Check repository status
+git pull origin main – Pull latest changes from remote
+git add . – Stage changes
+git commit -m "message" – Commit changes
+git push origin main – Push changes to remote
+git log – View commit history
+git checkout <branch-name> – Switch branches
+git merge <branch-name> – Merge branches
+git branch -d <branch-name> – Delete a branch
+git rm --cached <file> – Stop tracking a file
+git diff – View changes before committing
+git revert <commit-hash> – Revert to a previous commit
+git reset --hard <commit-hash> – Hard reset
+git tag <tag-name> – Create a tag
+git push --tags – Push tags to remote
+git clone <URL> – Clone a repository
+===========================================================================Git End------------------------------------------------------------------------------
+
+Angular Command
+Node install from 
+https://nodejs.org/en/download/prebuilt-installer
+npm install -g npm 
+npm -v
+
+npm i @angular/cli
+npm i @angular/cli@16.2.1 or npm i @angular/cli@16
+ng version
+node --version or node -v
+
+ng serve
+ng build
+
+
+
+
+Stets to Follow for Forms
+1) 
+
+
+
+
+=======================================================================================SQL Query ========================================================================
+
+========================================================================Remove Duplicate and Accociated  Records==========================================================
+-- Step 1: Create a temporary table to hold duplicate questions
+CREATE TABLE #DuplicateQuestions (
+    Id INT,
+    categoryid INT,
+    questiontext NVARCHAR(MAX),
+    userquestiontext NVARCHAR(MAX),
+    rn INT
+);
+
+-- Step 2: Insert duplicate questions into the temporary table
+INSERT INTO #DuplicateQuestions (Id, categoryid, questiontext, userquestiontext, rn)
+SELECT 
+    q.Id, 
+    q.categoryid, 
+    q.questiontext, 
+    q.userquestiontext, 
+    ROW_NUMBER() OVER (PARTITION BY q.categoryid, q.questiontext, q.userquestiontext ORDER BY q.Id) AS rn
+FROM Questions q;
+
+-- Step 3: Delete associated answers for the duplicate questions
+DELETE a
+FROM Answers a
+INNER JOIN #DuplicateQuestions dq ON a.QuestionId = dq.Id
+WHERE dq.rn > 1;
+
+-- Step 4: Delete duplicate questions
+DELETE q
+FROM Questions q
+INNER JOIN #DuplicateQuestions dq ON q.Id = dq.Id
+WHERE dq.rn > 1;
+
+-- Step 5: Drop the temporary table
+DROP TABLE #DuplicateQuestions;
+
+============================================================ System Table and Procedures======================================================
+with (nolock)
+sp_who2 
+sp_tables
+SELECT * FROM sys.procedures
+SELECT * from INFORMATION_SCHEMA.COLUMNS
+SELECT name, type FROM dbo.sysobjects WHERE type IN ( 
+	'P', -- stored procedures
+    'FN', -- scalar functions 
+    'IF', -- inline table-valued functions
+    'TF', -- table-valued functions
+	'U' -- Table
+) ORDER BY type, name
+
+
+====================================================== Copy all columns from one table to another table======================================================
+
+INSERT INTO table2
+SELECT * FROM table1
+WHERE condition;
+
+ex 1: INSERT INTO testdata (BatchName)
+SELECT (BatchName) FROM tblBatch
+
+ex 2: INSERT INTO Customers (CustomerName, City, Country)
+SELECT SupplierName, City, Country FROM Suppliers
+WHERE Country='Germany';
+
+if only structure copy then 
+
+select * into testdata 
+ from tblbatch
+where 1=2
+
+======================================================= loops in sql ===================================================================================
+ex 1:
+DECLARE @i INT = 10;
+ 
+WHILE @i < 30
+	BEGIN
+		PRINT (@i);
+		SET @i = @i + 10;
+	END;
+	
+ex 2:
+DECLARE @count INT = 1;
+DECLARE @max INT = 5000;
+DELETE FROM DummyTable;
+WHILE (@count <= @max)
+BEGIN
+    INSERT INTO DummyTable (DummyID, Name, Details)
+    SELECT @count, 'Name' + CAST(@count AS VARCHAR(5)), 'Details' + CAST(@count AS VARCHAR(5));
+    SET @count = @count + 1;
+END
+	
+	
+	
+======================================================= IF in sql ===================================================================================	
+	
+DECLARE @StudentMarks INT = 85;
+
+IF (@StudentMarks > 80)
+	BEGIN
+		IF @StudentMarks > 90
+			PRINT 'A+';
+		ELSE
+			PRINT 'A-';
+	END	
+ELSE 
+	PRINT 'Below A grade'	
+	
+======================================================= Paging in sql ===================================================================================	
+	
+-- offset will skip 20 records and fetch next will give you next 10 (we can assume page size=10 and page number 2 so offset is 10*2  (skip records)
+ex 1: 
+SELECT column1, column2, ...
+FROM your_table
+ORDER BY some_column
+OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY;
+
+ex 2: 
+
+WITH PagedData AS (
+    SELECT column1, column2, ..., ROW_NUMBER() OVER (ORDER BY some_column) AS RowNum
+    FROM your_table
+)
+SELECT column1, column2, ...
+FROM PagedData
+WHERE RowNum BETWEEN 11 AND 20;
+
+ ======================================================= Joins in sql ===================================================================================	
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+1. INNER JOIN (An INNER JOIN returns only the rows where there is a match in both tables.)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT columns
+FROM table1
+INNER JOIN table2
+    ON table1.column = table2.column;
+
+ex :
+SELECT employees.EmployeeID, employees.Name, departments.DepartmentName
+FROM employees
+INNER JOIN departments
+    ON employees.DepartmentID = departments.DepartmentID;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. LEFT JOIN (or LEFT OUTER JOIN) A LEFT JOIN returns all rows from the left table, and the matched rows from the right table. If there is no match, the result is NULL on the side of the right table.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT columns
+FROM table1
+LEFT JOIN table2
+    ON table1.column = table2.column;
+
+ex:
+SELECT employees.EmployeeID, employees.Name, departments.DepartmentName
+FROM employees
+LEFT JOIN departments
+    ON employees.DepartmentID = departments.DepartmentID;
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. RIGHT JOIN (or RIGHT OUTER JOIN) A RIGHT JOIN returns all rows from the right table, and the matched rows from the left table. If there is no match, the result is NULL on the side of the left table.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT columns
+FROM table1
+RIGHT JOIN table2
+    ON table1.column = table2.column;
+	
+ex:
+SELECT employees.EmployeeID, employees.Name, departments.DepartmentName
+FROM employees
+RIGHT JOIN departments
+    ON employees.DepartmentID = departments.DepartmentID;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------	
+4. FULL JOIN (or FULL OUTER JOIN) A FULL JOIN returns all rows when there is a match in either table. If there is no match, the result will show NULL in columns from the table without a match.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT columns
+FROM table1
+FULL JOIN table2
+    ON table1.column = table2.column;
+	
+ex:
+SELECT employees.EmployeeID, employees.Name, departments.DepartmentName
+FROM employees
+FULL JOIN departments
+    ON employees.DepartmentID = departments.DepartmentID;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+5. CROSS JOIN A CROSS JOIN returns the Cartesian product of the two tables, meaning it returns all possible combinations of rows from both tables.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT columns
+FROM table1
+CROSS JOIN table2;
+
+ex:
+SELECT products.ProductName, categories.CategoryName
+FROM products
+CROSS JOIN categories;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+6. SELF JOIN A SELF JOIN is used to join a table with itself. This is typically used to query hierarchical data or compare rows within the same table.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+SELECT a.columns, b.columns
+FROM table1 a
+INNER JOIN table1 b
+    ON a.column = b.column;
+	
+ex:
+SELECT e1.EmployeeID AS EmployeeID1, e1.Name AS EmployeeName1, e2.EmployeeID AS EmployeeID2, e2.Name AS EmployeeName2
+FROM employees e1
+INNER JOIN employees e2
+    ON e1.ManagerID = e2.EmployeeID;
+----------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+======================================================= Union and Union ALL in sql ===================================================================================	
+
+-- Union ( when want to remove duplicate rows The UNION operator combines the result sets of two or more SELECT statements and removes duplicate rows in the final result. It performs a distinct operation on the results.)
+
+SELECT column1, column2, ...
+FROM table1
+UNION
+SELECT column1, column2, ...
+FROM table2;
+
+	
+-- Union ALL ( The UNION ALL operator combines the result sets of two or more SELECT statements but includes all rows, even if they are duplicates.)
+
+SELECT column1, column2, ...
+FROM table1
+UNION ALL
+SELECT column1, column2, ...
+FROM table2;
+
+
+======================================================= Stored procedure that covers all four operations ======================================================= 
+CREATE PROCEDURE ManageData
+    @Action NVARCHAR(10),          -- Action type: select, insert, update, delete
+    @ID INT = NULL,                -- ID for select, update, delete (optional for insert)
+    @Name NVARCHAR(100) = NULL,    -- Name for insert, update (optional for select and delete)
+    @Age INT = NULL,               -- Age for insert, update (optional for select and delete)
+    @Salary DECIMAL(18,2) = NULL,  -- Salary for insert, update (optional for select and delete)
+    @ResultMessage NVARCHAR(255) OUTPUT  -- Output message
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+ -- Handle invalid action
+    IF @Action NOT IN ('select', 'insert', 'update', 'delete')
+    BEGIN
+        SET @ResultMessage = 'Invalid action specified.';
+        RETURN;
+    END
+
+    IF @Action = 'select'
+    BEGIN
+		-- Perform SELECT operation
+        IF @ID IS NULL
+        BEGIN
+            SET @ResultMessage = 'ID is required for SELECT operation.';
+            RETURN;
+        END
+	
+        -- Perform SELECT operation
+        SELECT ID, Name, Age, Salary
+        FROM YourTable
+        WHERE ID = @ID;
+        
+        SET @ResultMessage = 'Data retrieved successfully.';
+    END
+    ELSE IF @Action = 'insert'
+    BEGIN
+		-- Perform INSERT operation
+        IF @Name IS NULL OR @Age IS NULL OR @Salary IS NULL
+        BEGIN
+            SET @ResultMessage = 'Name, Age, and Salary are required for INSERT operation.';
+            RETURN;
+        END
+        -- Perform INSERT operation
+        INSERT INTO YourTable (Name, Age, Salary)
+        VALUES (@Name, @Age, @Salary);
+
+        SET @ResultMessage = 'Data inserted successfully.';
+    END
+    ELSE IF @Action = 'update'
+    BEGIN
+		-- Perform UPDATE operation
+        IF @ID IS NULL
+        BEGIN
+            SET @ResultMessage = 'ID is required for UPDATE operation.';
+            RETURN;
+        END
+		IF @Name IS NULL AND @Age IS NULL AND @Salary IS NULL
+        BEGIN
+            SET @ResultMessage = 'At least one of Name, Age, or Salary must be provided for UPDATE operation.';
+            RETURN;
+        END
+        -- Perform UPDATE operation
+        UPDATE YourTable
+        SET Name = @Name, Age = @Age, Salary = @Salary
+        WHERE ID = @ID;
+
+        IF @@ROWCOUNT > 0
+        BEGIN
+            SET @ResultMessage = 'Data updated successfully.';
+        END
+        ELSE
+        BEGIN
+            SET @ResultMessage = 'No data found to update.';
+        END
+    END
+    ELSE IF @Action = 'delete'
+    BEGIN
+		-- Perform DELETE operation
+        IF @ID IS NULL
+        BEGIN
+            SET @ResultMessage = 'ID is required for DELETE operation.';
+            RETURN;
+        END
+        -- Perform DELETE operation
+        DELETE FROM YourTable
+        WHERE ID = @ID;
+
+        IF @@ROWCOUNT > 0
+        BEGIN
+            SET @ResultMessage = 'Data deleted successfully.';
+        END
+        ELSE
+        BEGIN
+            SET @ResultMessage = 'No data found to delete.';
+        END
+    END
+    ELSE
+    BEGIN
+        SET @ResultMessage = 'Invalid action specified.';
+    END
+END
+
+---------------------------------------------------------Execute the SP---------------------------------------------------------------------------------
+1. Select Operation:
+
+DECLARE @Message NVARCHAR(255);
+EXEC ManageData @Action = 'select', @ID = 1, @ResultMessage = @Message OUTPUT;
+SELECT @Message AS ResultMessage;
+This would return the ID, Name, Age, and Salary for the employee with ID = 1.
+
+2. Insert Operation:
+
+DECLARE @Message NVARCHAR(255);
+EXEC ManageData @Action = 'insert', @Name = 'John Doe', @Age = 30, @Salary = 50000.00, @ResultMessage = @Message OUTPUT;
+SELECT @Message AS ResultMessage;
+This would insert a new row with the Name, Age, and Salary provided, and return the success message.
+
+3. Update Operation:
+
+DECLARE @Message NVARCHAR(255);
+EXEC ManageData @Action = 'update', @ID = 1, @Name = 'Jane Doe', @Age = 32, @Salary = 55000.00, @ResultMessage = @Message OUTPUT;
+SELECT @Message AS ResultMessage;
+This would update the employee with ID = 1, setting the Name, Age, and Salary, and return a success message if the update was successful.
+
+4. Delete Operation:
+
+DECLARE @Message NVARCHAR(255);
+EXEC ManageData @Action = 'delete', @ID = 1, @ResultMessage = @Message OUTPUT;
+SELECT @Message AS ResultMessage;
+
+=======================================================Stored Procedure to Check If Record Exists and Perform Insert or Update==================================
+
+CREATE PROCEDURE UpsertData
+    @ID INT,                     -- ID for checking the record existence
+    @Name NVARCHAR(100),          -- Name for insert or update
+    @Age INT,                     -- Age for insert or update
+    @Salary DECIMAL(18,2),        -- Salary for insert or update
+    @ResultMessage NVARCHAR(255) OUTPUT -- Output message
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Check if the record with the given ID exists
+    IF EXISTS (SELECT 1 FROM YourTable WHERE ID = @ID)
+    BEGIN
+        -- If record exists, perform UPDATE
+        UPDATE YourTable
+        SET Name = UPPER(@Name),  -- Convert Name to uppercase
+            Age = @Age,
+            Salary = @Salary
+        WHERE ID = @ID;
+
+        SET @ResultMessage = 'Data updated successfully.';
+    END
+    ELSE
+    BEGIN
+        -- If record does not exist, perform INSERT
+        INSERT INTO YourTable (ID, Name, Age, Salary)
+        VALUES (@ID, UPPER(@Name), @Age, @Salary);
+
+        SET @ResultMessage = 'Data inserted successfully.';
+    END
+END
+
+=======================================================Stored Procedure to Check If Record Exists and Perform Insert or Update using table type ================================
+
+CREATE TYPE DataTableType AS TABLE
+(
+    ID INT,
+    Name NVARCHAR(100),
+    Age INT,
+    Salary DECIMAL(18,2)
+);
+
+
+CREATE PROCEDURE UpsertDataFromTable
+    @DataTable DataTableType READONLY,    -- Table-valued parameter
+    @ResultMessage NVARCHAR(255) OUTPUT  -- Output message
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Declare a variable to hold the ID for each record
+    DECLARE @ID INT, @Name NVARCHAR(100), @Age INT, @Salary DECIMAL(18,2);
+
+    -- Declare a counter variable to simulate row-by-row iteration
+    DECLARE @Counter INT = 1;
+    DECLARE @MaxCount INT;
+
+    -- Get the total number of rows in the passed table
+    SELECT @MaxCount = COUNT(*) FROM @DataTable;
+
+    -- Loop through the records using WHILE
+    WHILE @Counter <= @MaxCount
+    BEGIN
+        -- Get the current record's values based on the counter
+        SELECT 
+            @ID = ID, 
+            @Name = Name, 
+            @Age = Age, 
+            @Salary = Salary
+        FROM @DataTable
+        WHERE @Counter = (SELECT ROW_NUMBER() OVER (ORDER BY ID) FROM @DataTable) -- Get the row based on the counter
+
+        -- Check if the record exists based on ID
+        IF EXISTS (SELECT 1 FROM YourTable WHERE ID = @ID)
+        BEGIN
+            -- If the record exists, perform UPDATE
+            UPDATE YourTable
+            SET 
+                Name = UPPER(@Name),   -- Convert Name to uppercase
+                Age = @Age,
+                Salary = @Salary
+            WHERE ID = @ID;
+
+            SET @ResultMessage = 'Data updated successfully for ID ' + CAST(@ID AS NVARCHAR(10));
+        END
+        ELSE
+        BEGIN
+            -- If the record does not exist, perform INSERT
+            INSERT INTO YourTable (ID, Name, Age, Salary)
+            VALUES (@ID, UPPER(@Name), @Age, @Salary);
+
+            SET @ResultMessage = 'Data inserted successfully for ID ' + CAST(@ID AS NVARCHAR(10));
+        END
+
+        -- Increment the counter to move to the next record
+        SET @Counter = @Counter + 1;
+    END
+END
+
+---------------------------------------------------------Execute the SP---------------------------------------------------------------------------------
+DECLARE @ResultMessage NVARCHAR(255);
+
+DECLARE @MyData DataTableType;
+
+-- Insert some sample data into the table variable
+INSERT INTO @MyData (ID, Name, Age, Salary)
+VALUES (1, 'John Doe', 30, 50000),
+       (2, 'Jane Smith', 32, 60000),
+       (3, 'Bob Johnson', 25, 40000);
+
+-- Call the stored procedure with the table-valued parameter
+EXEC UpsertDataFromTable 
+    @DataTable = @MyData, 
+    @ResultMessage = @ResultMessage OUTPUT;
+
+-- Get the result message
+SELECT @ResultMessage AS ResultMessage;
