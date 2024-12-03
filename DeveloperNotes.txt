@@ -2786,8 +2786,7 @@ Example: text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 ------------------------------------------------------------------------------------------------------------------------------
 @media: Used for defining responsive design rules based on screen size.
 Example:
-css
-Copy code
+
 @media (max-width: 768px) {
   .example { 
     font-size: 14px; 
@@ -3599,3 +3598,690 @@ $(document).ready(function() {
     </script>
 }
 ========================================================================================================================================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Form with Disabled Actions</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .container {width: 80%;margin: 50px auto;text-align: center;}
+        .form-group {margin: 10px;}
+        input {padding: 10px;font-size: 16px;width: 200px;}
+        button {padding: 10px 20px;font-size: 16px;}
+        .error {color: red;font-size: 12px;margin-top: 5px;}
+        .notification {color: red;font-weight: bold;}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Move to Next/Previous Textbox, Validate, Submit on Enter, and Disable Actions</h2>
+
+    <div class="form-group">
+        <input type="text" id="textbox1" placeholder="First Name">
+        <div class="error" id="error1"></div>
+    </div>
+    <div class="form-group">
+        <input type="text" id="textbox2" placeholder="Last Name">
+        <div class="error" id="error2"></div>
+    </div>
+    <div class="form-group">
+        <input type="text" id="textbox3" placeholder="Email">
+        <div class="error" id="error3"></div>
+    </div>
+    <div class="form-group">
+        <input type="text" id="textbox4" placeholder="Phone">
+        <div class="error" id="error4"></div>
+    </div>
+    
+    <!-- Submit button -->
+    <div class="form-group">
+        <button id="submitBtn">Submit</button>
+    </div>
+
+    <div class="notification" id="actionMessage"></div>
+</div>
+
+<script>
+$(document).ready(function() {
+
+    // Function to validate each input field
+    function validateInput(input) {
+        // Trim any extra spaces
+        var value = input.val().trim();
+
+        // Check if the input field is empty
+        if (value === "") {
+            // Display error message
+            input.next('.error').text("This field is required.");
+            return false;
+        } else {
+            // Clear the error message
+            input.next('.error').text("");
+            return true;
+        }
+    }
+
+    // Move to the next or previous textbox on Tab or Shift + Tab key press
+    $('input').on('keydown', function(e) {
+        var currentInput = $(this);
+        
+        // Check if the key pressed is Tab or Enter
+        if (e.key === "Tab" || e.key === "Enter") {
+            // Prevent the default behavior
+            e.preventDefault();
+            
+            // If Tab key is pressed and Shift key is held down (for previous input)
+            if (e.key === "Tab" && e.shiftKey) {
+                // Validate current input
+                if (!validateInput(currentInput)) {
+                    return; // Prevent moving if validation fails
+                }
+
+                // Move focus to the previous input element
+                var prevInput = currentInput.closest('div').prev().find('input');
+                if (prevInput.length > 0) {
+                    prevInput.focus();
+                } else {
+                    // If it's the first input, focus back to the last input (optional)
+                    $('#textbox4').focus(); // Optional: Move to the last input
+                }
+            }
+            // If Enter key is pressed
+            else if (e.key === "Enter") {
+                // Validate current input
+                if (!validateInput(currentInput)) {
+                    return; // Prevent moving if validation fails
+                }
+
+                // Check if this is the last input field
+                if (currentInput.is('#textbox4')) {
+                    // Trigger submit button click if the Enter key is pressed on the last input field
+                    $('#submitBtn').click();
+                } else {
+                    // Move focus to the next input field
+                    var nextInput = currentInput.closest('div').next().find('input');
+                    if (nextInput.length > 0) {
+                        nextInput.focus();
+                    }
+                }
+            }
+            // If Tab key is pressed (without Shift key)
+            else if (e.key === "Tab") {
+                // Validate current input
+                if (!validateInput(currentInput)) {
+                    return; // Prevent moving if validation fails
+                }
+
+                // Move focus to the next input field
+                var nextInput = currentInput.closest('div').next().find('input');
+                if (nextInput.length > 0) {
+                    nextInput.focus();
+                }
+            }
+        }
+    });
+
+    // Handle submit button click event
+    $('#submitBtn').on('click', function() {
+        // Validate all fields before submitting
+        var isValid = true;
+        $('input').each(function() {
+            if (!validateInput($(this))) {
+                isValid = false;
+            }
+        });
+
+        if (isValid) {
+            alert('Form Submitted!');
+            // You can place your form submission logic here (e.g., AJAX call)
+        } else {
+            alert('Please fill in all required fields.');
+        }
+    });
+
+    // Disable right-click (context menu)
+    $(document).on('contextmenu', function(e) {
+        e.preventDefault();
+        $('#actionMessage').text("Right-click is disabled.");
+    });
+
+    // Disable Tab key (form element navigation)
+    $(document).on('keydown', function(e) {
+        if (e.key === "Tab") {
+            e.preventDefault();
+            $('#actionMessage').text("Tab key is disabled.");
+        }
+    });
+
+    // Disable text selection (selecting text)
+    $(document).on('selectstart', function(e) {
+        e.preventDefault();
+        $('#actionMessage').text("Text selection is disabled.");
+    });
+
+    // Disable copy action
+    $(document).on('copy', function(e) {
+        e.preventDefault();
+        $('#actionMessage').text("Copy action is disabled.");
+    });
+
+    // Optional: To clear the notification message after a few seconds
+    setInterval(function() {
+        $('#actionMessage').text('');
+    }, 3000);
+
+});
+</script>
+
+</body>
+</html>
+=========================================================================MVC==========================================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Form with Dynamic Dropdowns</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+
+<div class="container">
+    <h2>Create Employee</h2>
+    <form id="employeeForm">
+        <!-- Name -->
+        <div class="form-group">
+            <label for="Name">Name:</label>
+            <input type="text" class="form-control" id="Name" name="Name" required>
+        </div>
+
+        <!-- Email -->
+        <div class="form-group">
+            <label for="Email">Email:</label>
+            <input type="email" class="form-control" id="Email" name="Email" required>
+        </div>
+
+        <!-- Phone -->
+        <div class="form-group">
+            <label for="Phone">Phone:</label>
+            <input type="tel" class="form-control" id="Phone" name="Phone" required>
+        </div>
+
+        <!-- Country Dropdown -->
+        <div class="form-group">
+            <label for="Country">Country:</label>
+            <select class="form-control" id="Country" name="Country" required>
+                <option value="">Select Country</option>
+                <option value="USA">USA</option>
+                <option value="Canada">Canada</option>
+            </select>
+        </div>
+
+        <!-- State Dropdown -->
+        <div class="form-group">
+            <label for="State">State:</label>
+            <select class="form-control" id="State" name="State" required>
+                <option value="">Select State</option>
+            </select>
+        </div>
+
+        <!-- City Dropdown -->
+        <div class="form-group">
+            <label for="City">City:</label>
+            <select class="form-control" id="City" name="City" required>
+                <option value="">Select City</option>
+            </select>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Load states when country is selected
+        $('#Country').change(function () {
+            var country = $(this).val();
+
+            // Reset state and city dropdowns
+            $('#State').empty().append('<option value="">Select State</option>');
+            $('#City').empty().append('<option value="">Select City</option>');
+
+            if (country) {
+                // AJAX request to get states
+                $.ajax({
+                    url: '@Url.Action("GetStates", "Employee")',
+                    data: { country: country },
+                    success: function (data) {
+                        if (data.length > 0) {
+                            // Populate states dropdown
+                            $.each(data, function (index, value) {
+                                $('#State').append('<option value="' + value + '">' + value + '</option>');
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        // Load cities when state is selected
+        $('#State').change(function () {
+            var state = $(this).val();
+
+            // Reset city dropdown
+            $('#City').empty().append('<option value="">Select City</option>');
+
+            if (state) {
+                // AJAX request to get cities
+                $.ajax({
+                    url: '@Url.Action("GetCities", "Employee")',
+                    data: { state: state },
+                    success: function (data) {
+                        if (data.length > 0) {
+                            // Populate city dropdown
+                            $.each(data, function (index, value) {
+                                $('#City').append('<option value="' + value + '">' + value + '</option>');
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        // Submit form with validation
+        $('#employeeForm').submit(function (e) {
+            e.preventDefault();
+
+            var name = $('#Name').val();
+            var email = $('#Email').val();
+            var phone = $('#Phone').val();
+            var country = $('#Country').val();
+            var state = $('#State').val();
+            var city = $('#City').val();
+
+            if (!name || !email || !phone || !country || !state || !city) {
+                alert("Please fill all fields.");
+                return;
+            }
+
+            // Collect form data
+            var formData = {
+                Name: name,
+                Email: email,
+                Phone: phone,
+                Country: country,
+                State: state,
+                City: city
+            };
+
+            // You can perform AJAX to save this data here (example using a simulated AJAX call)
+            $.ajax({
+                url: '/Employee/SaveEmployee',
+                type: 'POST',
+                data: formData,
+                success: function (response) {
+                    alert("Employee saved successfully!");
+                },
+                error: function () {
+                    alert("An error occurred while saving.");
+                }
+            });
+        });
+    });
+</script>
+
+</body>
+</html>
+------------------------------------------------------Modal-----------------------------------------------------------------------------------
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace YourNamespace.Models
+{
+    public class Employee
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Name is required.")]
+        [StringLength(50, ErrorMessage = "Name can't be longer than 50 characters.")]
+        public string Name { get; set; }
+
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid Email Address")]
+        public string Email { get; set; }
+
+        [Required(ErrorMessage = "Phone number is required.")]
+        [Phone(ErrorMessage = "Invalid phone number.")]
+        public string Phone { get; set; }
+
+        [Required(ErrorMessage = "Country is required.")]
+        public int CountryId { get; set; }
+
+        [Required(ErrorMessage = "State is required.")]
+        public int StateId { get; set; }
+
+        [Required(ErrorMessage = "City is required.")]
+        public int CityId { get; set; }
+
+        // Dropdowns
+        public IEnumerable<SelectListItem> Countries { get; set; }
+        public IEnumerable<SelectListItem> States { get; set; }
+        public IEnumerable<SelectListItem> Cities { get; set; }
+    }
+}
+---------------------------------------------------------Controller--------------------------------------------------------------------------------
+using System.Collections.Generic;
+using System.Linq;
+using System.Web.Mvc;
+using YourNamespace.Models;
+
+namespace YourNamespace.Controllers
+{
+    public class EmployeeController : Controller
+    {
+        // In-memory data for demo purposes
+        private static List<string> countries = new List<string> { "USA", "Canada" };
+        private static List<string> usaStates = new List<string> { "California", "Texas", "New York" };
+        private static List<string> canadaStates = new List<string> { "Ontario", "Quebec" };
+        private static List<string> californiaCities = new List<string> { "Los Angeles", "San Francisco", "San Diego" };
+        private static List<string> texasCities = new List<string> { "Houston", "Dallas", "Austin" };
+        private static List<string> ontarioCities = new List<string> { "Toronto", "Ottawa", "Hamilton" };
+
+        // GET: Employee
+        public ActionResult Index()
+        {
+            var model = new Employee
+            {
+                Countries = countries.Select(c => new SelectListItem { Text = c, Value = c }).ToList()
+            };
+
+            return View(model);
+        }
+
+        // POST: Employee/Create
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create(Employee model)
+        {
+            if (ModelState.IsValid)
+            {
+                // Save the employee (just for demo purposes)
+                return RedirectToAction("Index");
+            }
+
+            // If validation fails, repopulate dropdowns
+            model.Countries = countries.Select(c => new SelectListItem { Text = c, Value = c }).ToList();
+            return View(model);
+        }
+
+        // AJAX: Get States based on Country
+        public JsonResult GetStatesByCountry(string country)
+        {
+            List<string> states = new List<string>();
+
+            if (country == "USA")
+            {
+                states = usaStates;
+            }
+            else if (country == "Canada")
+            {
+                states = canadaStates;
+            }
+
+            var stateList = states.Select(s => new SelectListItem { Text = s, Value = s }).ToList();
+            return Json(stateList, JsonRequestBehavior.AllowGet);
+        }
+
+        // AJAX: Get Cities based on State
+        public JsonResult GetCitiesByState(string state)
+        {
+            List<string> cities = new List<string>();
+
+            if (state == "California")
+            {
+                cities = californiaCities;
+            }
+            else if (state == "Texas")
+            {
+                cities = texasCities;
+            }
+            else if (state == "Ontario")
+            {
+                cities = ontarioCities;
+            }
+
+            var cityList = cities.Select(c => new SelectListItem { Text = c, Value = c }).ToList();
+            return Json(cityList, JsonRequestBehavior.AllowGet);
+        }
+    }
+}
+======================================================================Angular Material Control, AG grid=========================================================
+
+1. App Module (app.module.ts)
+Make sure you import all necessary modules in your app.module.ts file.
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+import { NgModule } from '@angular/core';
+import { BrowserModule } from '@angular/platform-browser';
+import { ReactiveFormsModule } from '@angular/forms';
+import { MatInputModule, MatButtonModule, MatFormFieldModule, MatAutocompleteModule, MatSelectModule, MatOptionModule } from '@angular/material';
+import { AgGridModule } from 'ag-grid-angular';
+import { AppComponent } from './app.component';
+import { HttpClientModule } from '@angular/common/http'; // for API calls
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [
+    BrowserModule,
+    ReactiveFormsModule,
+    MatInputModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatAutocompleteModule, 
+    MatSelectModule, 
+    MatOptionModule,
+    AgGridModule.withComponents([]),
+    HttpClientModule
+  ],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class AppModule {}
+----------------------------------------------------------------------------------------------------------------------------------------------------
+2. App Component (app.component.ts)
+----------------------------------------------------------------------------------------------------------------------------------------------------
+The component contains the logic for form validation, autocomplete, dropdown, AG-Grid manipulation, and simulated API calls.
+
+
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Observable } from 'rxjs';
+import { startWith, map } from 'rxjs/operators';
+import { HttpClient } from '@angular/common/http'; // Import HttpClient for API requests
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css'],
+})
+export class AppComponent {
+  title = 'Angular Material and AG-Grid with AutoComplete, DropDown, and CRUD';
+
+  // Form group for Angular Material form
+  form: FormGroup;
+
+  // Data for DropDown (mat-select) and AutoComplete (mat-autocomplete)
+  countries: string[] = ['USA', 'Canada', 'UK', 'Australia', 'India'];
+  filteredCountries: Observable<string[]>;
+
+  // Sample data for AG-Grid
+  rowData = [
+    { id: 1, name: 'John', country: 'USA' },
+    { id: 2, name: 'Jane', country: 'UK' },
+    { id: 3, name: 'Bob', country: 'Canada' },
+  ];
+
+  columnDefs = [
+    { headerName: 'ID', field: 'id', editable: false },
+    { headerName: 'Name', field: 'name', editable: true },
+    { headerName: 'Country', field: 'country', editable: true },
+    {
+      headerName: 'Actions',
+      field: 'actions',
+      cellRenderer: (params) => {
+        return (
+          `<button class="edit-btn" onclick="editRow(${params.rowIndex})">Edit</button>` +
+          ` <button class="delete-btn" onclick="deleteRow(${params.rowIndex})">Delete</button>`
+        );
+      },
+    },
+  ];
+
+  constructor(private fb: FormBuilder, private http: HttpClient) {
+    // Initialize the form with validation
+    this.form = this.fb.group({
+      name: ['', [Validators.required]],
+      country: ['', [Validators.required]],
+    });
+
+    // Initialize the autocomplete filtering
+    this.filteredCountries = this.form
+      .get('country')
+      .valueChanges.pipe(
+        startWith(''),
+        map((value) => this._filter(value))
+      );
+  }
+
+  // Function to filter countries for autocomplete
+  private _filter(value: string): string[] {
+    const filterValue = value.toLowerCase();
+    return this.countries.filter((country) =>
+      country.toLowerCase().includes(filterValue)
+    );
+  }
+
+  // Submit form data (simulate saving to the API)
+  onSubmit() {
+    if (this.form.valid) {
+      console.log(this.form.value);
+      // Here, call the API to save the form data (simulated)
+      this.http.post('/api/save', this.form.value).subscribe(
+        (response) => {
+          console.log('Form submitted successfully', response);
+        },
+        (error) => {
+          console.error('Form submission error', error);
+        }
+      );
+    }
+  }
+
+  // Edit a row
+  editRow(index: number) {
+    const row = this.rowData[index];
+    this.form.setValue({ name: row.name, country: row.country });
+  }
+
+  // Delete a row
+  deleteRow(index: number) {
+    this.rowData.splice(index, 1); // Remove from array
+  }
+
+  // Add a new row (simulate adding new data)
+  addRow() {
+    if (this.form.valid) {
+      const newRow = {
+        id: this.rowData.length + 1,
+        name: this.form.value.name,
+        country: this.form.value.country,
+      };
+      this.rowData.push(newRow);
+      this.form.reset();
+    } else {
+      console.log('Form is not valid');
+    }
+  }
+}
+----------------------------------------------------------------------------------------------------------------------------------------------------
+3. App Component Template (app.component.html)
+This template integrates AutoComplete, DropDown, Form, and AG-Grid.
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+<div class="container">
+  <h2>{{ title }}</h2>
+  
+  <!-- Angular Material Form -->
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <mat-form-field appearance="fill">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" required />
+      <mat-error *ngIf="form.get('name').hasError('required')">
+        Name is required.
+      </mat-error>
+    </mat-form-field>
+
+    <!-- AutoComplete (mat-autocomplete) for Country -->
+    <mat-form-field appearance="fill">
+      <mat-label>Country</mat-label>
+      <input
+        matInput
+        formControlName="country"
+        [matAutocomplete]="auto"
+        required
+      />
+      <mat-autocomplete #auto="matAutocomplete">
+        <mat-option *ngFor="let country of filteredCountries | async" [value]="country">
+          {{ country }}
+        </mat-option>
+      </mat-autocomplete>
+      <mat-error *ngIf="form.get('country').hasError('required')">
+        Country is required.
+      </mat-error>
+    </mat-form-field>
+
+    <!-- Dropdown (mat-select) for Country -->
+    <mat-form-field appearance="fill">
+      <mat-label>Country</mat-label>
+      <mat-select formControlName="country" required>
+        <mat-option *ngFor="let country of countries" [value]="country">
+          {{ country }}
+        </mat-option>
+      </mat-select>
+      <mat-error *ngIf="form.get('country').hasError('required')">
+        Country is required.
+      </mat-error>
+    </mat-form-field>
+
+    <button mat-raised-button color="primary" type="submit">Submit</button>
+    <button mat-raised-button color="accent" (click)="addRow()">Add Row</button>
+  </form>
+
+  <h3>AG-Grid Data</h3>
+
+  <!-- AG-Grid Table -->
+  <ag-grid-angular
+    style="width: 100%; height: 400px"
+    class="ag-theme-alpine"
+    [rowData]="rowData"
+    [columnDefs]="columnDefs"
+    [pagination]="true"
+  ></ag-grid-angular>
+</div>
+----------------------------------------------------------------------------------------------------------------------------------------------------
+4. CSS (app.component.css)
+Some basic styling for the grid and buttons:
+----------------------------------------------------------------------------------------------------------------------------------------------------
+
+.container {  margin: 20px;}
+mat-form-field {  width: 100%;}
+button {  margin-top: 20px;}
+.edit-btn {  background-color: #007bff;  color: white;  border: none;  padding: 5px;  cursor: pointer;}
+.delete-btn {  background-color: #dc3545;  color: white;  border: none;  padding: 5px;  cursor: pointer;}
+.edit-btn:hover,.delete-btn:hover {  opacity: 0.7;}
+----------------------------------------------------------------------------------------------------------------------------------------------------
