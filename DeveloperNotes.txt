@@ -1,4 +1,59 @@
-===========================================================================Git Start--------------------------------------------------------------------------
+===========================================================================Command/Shortcut===========================================================================
+
+msconfig							-- Opens the System Configuration tool for managing startup programs, services, and boot options.
+temp								-- Opens the Temporary Files folder for the current user.
+%temp%								-- Opens the Temp folder where temporary files are stored.
+prefetch							-- Opens the Prefetch folder, which stores data about recently used programs.
+%appdata%							-- Opens the AppData folder where application settings and configurations are stored.
+%userprofile%						-- Opens the user's Profile folder, containing personal files like Documents, Desktop, etc.
+shell:startup						-- Opens the Startup folder where programs that start with Windows are stored.
+shell:sendto						-- Opens the SendTo folder, where shortcuts for the "Send To" menu are stored.
+regedit								-- Opens the Registry Editor, used for modifying system settings (use with caution).
+mstsc								-- Opens Remote Desktop Connection to remotely connect to another computer.
+netstat 							-- Displays active network connections and listening ports.
+ping [hostname/IP]					-- Sends a ping request to test network connectivity to a host or IP address.
+ssh [username@hostname]				-- Initiates an SSH connection (for remote login) if OpenSSH is installed.
+telnet [hostname/IP]				-- Connects to a server using Telnet for testing TCP/IP connections (requires Telnet client).
+%systemroot%						-- Opens the Windows installation directory (usually C:\Windows).
+%windir%							-- Opens the Windows directory, similar to %systemroot%.
+%programfiles%						-- Opens the Program Files directory where applications are installed.
+%programfiles(x86)%					-- Opens the Program Files (x86) directory for 32-bit applications on 64-bit systems.
+%path%								-- Displays the system PATH variable, showing directories containing executable programs.
+control								-- Opens the Control Panel to access various system settings.
+control printers					-- Opens the Devices and Printers window to manage printers and devices.
+dxdiag								-- Opens the DirectX Diagnostic Tool for system information, graphics, and sound diagnostics.
+devmgmt.msc							-- Opens the Device Manager to manage hardware devices and drivers.
+diskmgmt.msc						-- Opens Disk Management to manage disks, partitions, and volumes.
+services.msc						-- Opens Services to manage and configure system services.
+cmd									-- Opens the Command Prompt window.
+powershell							-- Opens PowerShell, an advanced scripting shell for automation and system management.
+explorer							-- Opens Windows Explorer to browse files and directories.
+taskmgr								-- Opens Task Manager to manage running processes, applications, and system performance.
+eventvwr							-- Opens Event Viewer to view system, application, and security logs.
+compmgmt.msc						-- Opens Computer Management, which includes various administrative tools like Task Scheduler, Device Manager, etc.
+perfmon								-- Opens Performance Monitor to monitor system performance in real-time.
+shutdown /r /f /t 0					-- Restarts the system immediately, forcing all applications to close (/r for restart, /f for force, /t 0 for no delay).
+echo [text]							-- Displays the specified text in the Command Prompt.
+cls									-- Clears the screen in the Command Prompt.
+exit								-- Closes the current Command Prompt or PowerShell window.
+dir									-- Lists the files and directories in the current directory.
+cd [path]							-- Changes the current directory to the specified path.
+cd ..								-- Moves up one directory level.
+mkdir [folder_name]					-- Creates a new directory with the specified folder name.
+rmdir [folder_name]					-- Deletes an empty directory.
+del [file_name]						-- Deletes the specified file.
+type [file_name]					-- Displays the contents of the specified text file.
+copy [source] [destination]			-- Copies files from source to destination.
+move [source] [destination]			-- Moves files from source to destination.
+tasklist							-- Lists all running processes in the system.
+taskkill /IM [process_name]			-- Ends a process by its name.
+ipconfig							-- Displays network configuration details (IP address, subnet mask, etc.).
+netstat								-- Displays active network connections and open ports.
+ping [hostname]						-- Sends a ping request to a host to check network connectivity.
+net user							-- Displays a list of user accounts on the computer.
+shutdown -r							-- Restarts the computer.
+net use [drive letter]: \\[server]\[share]	-- Maps a network drive to a shared folder on a network.
+===========================================================================Git Start===========================================================================
 
 git config user.name my-name
 git config user.email my-email
@@ -63,6 +118,28 @@ Stets to Follow for Forms
 
 
 =======================================================================================SQL Query ========================================================================
+=======================================================================================SQL Search ========================================================================
+
+% represents any sequence of characters.
+_ represents a single character.
+
+For exact matches, use = or LIKE for partial string searches.
+For similar-sounding words, use the SOUNDEX function.
+For complex and fast searches on large textual datasets, consider using Full-Text Search with CONTAINS and FREETEXT.
+
+SELECT * FROM Employees
+WHERE SOUNDEX(LastName) = SOUNDEX('smith');
+
+-- Create full-text index on the Products table for the ProductName column
+CREATE FULLTEXT INDEX ON Products(ProductName) KEY INDEX PK_Products;
+
+-- Search for products that contain the word "apple"
+SELECT * FROM Products
+WHERE CONTAINS(ProductName, 'apple');
+
+-- Search for products that are similar to "apple" (even misspelled)
+SELECT * FROM Products
+WHERE FREETEXT(ProductName, 'apple');
 
 =======================================================================================Alter table, rename column=============================================================
 
@@ -194,6 +271,142 @@ SELECT name, type FROM dbo.sysobjects WHERE type IN (
 	'U' -- Table
 ) ORDER BY type, name
 
+
+============================================================ System Health=============================================================
+1. Check SQL Server Instance Status
+This query checks if the SQL Server instance is online and running:
+
+SELECT SERVERPROPERTY('MachineName') AS MachineName, 
+       SERVERPROPERTY('ProductVersion') AS ProductVersion, 
+       SERVERPROPERTY('ProductLevel') AS ProductLevel,
+       SERVERPROPERTY('Edition') AS Edition, 
+       SERVERPROPERTY('EngineEdition') AS EngineEdition,
+       SERVERPROPERTY('IsClustered') AS IsClustered;
+
+2. Check SQL Server Service Status
+You can check if the SQL Server service is running using the following command (run from the Windows Command Prompt, not SQL Server Management Studio):
+services.msc
+Look for the service SQL Server (MSSQLSERVER) and ensure it’s running.
+
+3. Check System Health (SQL Server Error Logs)
+You can review the SQL Server error log for any issues related to the SQL Server health:
+EXEC xp_readerrorlog 0, 1, N'SQL Server';
+This command reads the SQL Server error log for errors, which may highlight any serious issues such as startup failures, connectivity problems, or other critical warnings.
+
+4. Check Database Integrity
+To check the integrity of your databases, you can run the following query:
+DBCC CHECKDB;
+This command checks the integrity of all databases in the instance and reports any corruption or issues in the database.
+
+5. Check System Resource Usage (CPU, Memory, Disk)
+Use the following queries to check for system resource utilization such as CPU, memory, and disk.
+CPU Usage
+SELECT sqlserver_start_time, 
+       percent_cpu = (total_cpu_usage_ms / (total_cpu_usage_ms + idle_cpu_usage_ms) * 100)
+FROM sys.dm_exec_sessions
+WHERE session_id = 1;
+This will give you a rough idea of CPU utilization for the SQL Server.
+
+Memory Usage
+SELECT 
+    physical_memory_in_use_kb/1024 AS MemoryUsedMB,
+    total_virtual_address_space_kb/1024 AS TotalMemoryMB,
+    available_physical_memory_kb/1024 AS FreeMemoryMB
+FROM sys.dm_os_sys_info;
+Disk Usage
+To check disk space usage for the database:
+
+EXEC sp_MSforeachdb 'USE [?]; DBCC SHOWFILESTATS';
+This will provide disk space information for all databases.
+
+6. Check SQL Server Wait Stats (Performance Bottlenecks)
+You can use the following query to identify wait statistics, which can give insights into performance bottlenecks:
+
+SELECT wait_type, wait_time_ms, wait_time_ms / 1000.0 AS wait_time_sec,
+       wait_category_desc
+FROM sys.dm_exec_requests
+WHERE session_id = 53;  -- Replace with the session ID you're interested in
+Common wait types to look for:
+CXPACKET: Indicates parallelism issues.
+LCK_M_X: Indicates blocking or locking issues.
+7. Check for Active Connections (Sessions)
+To check active connections to SQL Server and any blocking issues:
+
+SELECT 
+    spid, 
+    blocked, 
+    login_time, 
+    last_batch, 
+    dbid, 
+    cpu, 
+    physical_io, 
+    loginame, 
+    hostname, 
+    program_name
+FROM sys.sysprocesses
+WHERE blocked > 0;  -- Shows blocked sessions
+
+8. Check for Long-Running Queries
+To find long-running queries that may impact the SQL Server performance:
+
+SELECT 
+    session_id, 
+    start_time, 
+    status, 
+    total_elapsed_time / 1000 AS ElapsedTimeSeconds, 
+    command, 
+    sql_text = SUBSTRING(qt.text, r.statement_start_offset/2, 
+        (CASE WHEN r.statement_end_offset = -1 
+            THEN LEN(CONVERT(NVARCHAR(MAX), qt.text)) * 2 
+            ELSE r.statement_end_offset END - r.statement_start_offset)/2)
+FROM sys.dm_exec_requests r
+CROSS APPLY sys.dm_exec_sql_text(r.sql_handle) qt
+WHERE r.total_elapsed_time > 10000;  -- Shows queries running more than 10 seconds
+
+9. Check for SQL Server Database Backups
+You should regularly back up your databases. To check the last backup time for all databases:
+SELECT 
+    db.name AS DatabaseName,
+    MAX(b.backup_finish_date) AS LastBackupTime
+FROM sys.databases db
+LEFT JOIN msdb.dbo.backupset b 
+    ON db.name = b.database_name
+    AND b.type = 'D'  -- Full Database Backup
+GROUP BY db.name;
+
+10. Check SQL Server Job History (SQL Agent)
+To ensure SQL Agent jobs are running smoothly, use:
+SELECT 
+    job_id, 
+    name, 
+    enabled, 
+    description, 
+    date_created, 
+    date_modified 
+FROM msdb.dbo.sysjobs;
+This will give you a list of SQL Server Agent jobs and their status.
+
+11. Check SQL Server Index Fragmentation
+If your indexes are fragmented, it can affect performance. To check the fragmentation level:
+
+
+SELECT 
+    database_id, 
+    object_id, 
+    index_id, 
+    avg_fragmentation_in_percent
+FROM sys.dm_db_index_physical_stats(NULL, NULL, NULL, NULL, NULL)
+WHERE avg_fragmentation_in_percent > 30;  -- Indexes with more than 30% fragmentation
+
+12. Check Database Size and Growth
+To check database size and how it is growing over time:
+SELECT 
+    name AS DatabaseName,
+    size * 8 / 1024 AS SizeMB,
+    growth * 8 / 1024 AS GrowthMB
+FROM sys.master_files
+WHERE type = 0;  -- Only database files, not log files
+
 ====================================================== Copy all columns from one table to another table======================================================
 
 INSERT INTO table2
@@ -233,7 +446,6 @@ BEGIN
     SELECT @count, 'Name' + CAST(@count AS VARCHAR(5)), 'Details' + CAST(@count AS VARCHAR(5));
     SET @count = @count + 1;
 END
-	
 	
 	
 ======================================================= IF in sql ===================================================================================	
@@ -618,6 +830,32 @@ EXEC UpsertDataFromTable
 
 -- Get the result message
 SELECT @ResultMessage AS ResultMessage;
+========================================================================================SCOPE_IDENTITY======================================================
+
+BEGIN TRANSACTION;
+
+BEGIN TRY
+    -- Step 1: Insert into Customers Table
+    INSERT INTO Customers (Name, Email)
+    VALUES ('John Doe', 'johndoe@example.com');
+
+    -- Step 2: Retrieve the CustomerID of the last inserted customer
+    DECLARE @CustomerID INT = SCOPE_IDENTITY();
+
+    -- Step 3: Insert into Orders Table using the CustomerID
+    INSERT INTO Orders (CustomerID, OrderDate, TotalAmount)
+    VALUES (@CustomerID, GETDATE(), 150.00);
+
+    -- If everything is successful, commit the transaction
+    COMMIT TRANSACTION;
+END TRY
+BEGIN CATCH
+    -- If an error occurs, roll back the transaction
+    ROLLBACK TRANSACTION;
+
+    -- Optionally, you can return an error message or log the error here
+    THROW;
+END CATCH;
 
 ================================================================================================Use of Cast======================================================
 -- 1. CAST to INT (from string)
@@ -896,6 +1134,26 @@ SELECT DATEPART(MONTH, '2024-12-15'); -- Output: 12
 
 35. CURRENT_TIMESTAMP – Returns the current date and time.
 SELECT CURRENT_TIMESTAMP; -- Output: '2024-12-01 12:00:00.000' (or current date/time)
+   
+=============================================================================Date Formats========================================================================
+
+-- Example of converting a date to different formats
+SELECT CONVERT(VARCHAR, GETDATE(), 1) AS DateFormatted; -- MM/DD/YY (Style 1)
+SELECT CONVERT(VARCHAR, GETDATE(), 3) AS DateFormatted; -- DD/MM/YY (Style 3)
+SELECT CONVERT(VARCHAR, GETDATE(), 4) AS DateFormatted; -- DD.MM.YY (Style 4)
+SELECT CONVERT(VARCHAR, GETDATE(), 10) AS DateFormatted; -- MM-DD-YYYY (Style 10)
+SELECT CONVERT(VARCHAR, GETDATE(), 11) AS DateFormatted; -- YY/MM/DD (Style 11)
+SELECT CONVERT(VARCHAR, GETDATE(), 120) AS DateFormatted; -- YYYY-MM-DD HH:MI:SS (Style 120)
+-- Example of formatting the current date
+SELECT FORMAT(GETDATE(), 'yyyy-MM-dd') AS DateFormatted;
+SELECT FORMAT(GETDATE(), 'dd/MM/yyyy') AS DateFormatted;
+SELECT FORMAT(GETDATE(), 'MMMM dd, yyyy') AS DateFormatted; -- Full month name, day, year
+SELECT FORMAT(GETDATE(), 'yyyy-MM-dd HH:mm:ss') AS DateFormatted; -- Date and time
+-- Example of extracting parts of the date
+SELECT DATEPART(YEAR, GETDATE()) AS Year;
+SELECT DATEPART(MONTH, GETDATE()) AS Month;
+SELECT DATEPART(DAY, GETDATE()) AS Day;
+
 
 ===========================================================================Validations ===============================================================
 
@@ -1377,3 +1635,1967 @@ SET
 FROM Employees E
 JOIN Bonuses B ON E.EmployeeID = B.EmployeeID
 WHERE E.Department IN ('HR', 'Finance'); -- Only update employees in HR or Finance
+
+==========================================================================SQL Example==================================================================================
+
+WITH CustomerOrders AS (
+    SELECT 
+        c.CustomerID, 
+        c.Name AS CustomerName, 
+        c.Email, 
+        SUM(od.Quantity * od.UnitPrice) AS TotalAmount,
+        ROW_NUMBER() OVER (ORDER BY SUM(od.Quantity * od.UnitPrice) DESC) AS Rank
+    FROM Customers c
+    JOIN Orders o ON c.CustomerID = o.CustomerID
+    JOIN OrderDetails od ON o.OrderID = od.OrderID
+    WHERE YEAR(o.OrderDate) = 2023
+    GROUP BY c.CustomerID, c.Name, c.Email
+),
+RankedCustomers AS (
+    SELECT 
+        CustomerID,
+        CustomerName,
+        Email,
+        TotalAmount,
+        Rank,
+        CASE
+            WHEN TotalAmount > 5000 THEN 'High'
+            WHEN TotalAmount BETWEEN 1000 AND 5000 THEN 'Medium'
+            WHEN TotalAmount < 1000 THEN 'Low'
+            ELSE 'No Spend'
+        END AS SpendingCategory
+    FROM CustomerOrders
+)
+SELECT 
+    CustomerID, 
+    CustomerName, 
+    Email, 
+    TotalAmount, 
+    SpendingCategory,
+    Rank
+FROM RankedCustomers
+WHERE Rank > 10 AND Rank <= 20  -- Pagination: Show customers ranked between 11 and 20
+ORDER BY Rank;
+
+
+==============================================================================================LINQ Group BY ================================================================
+
+public class Product
+{
+    public int ProductID { get; set; }
+    public string Name { get; set; }
+}
+
+public class Sale
+{
+    public int SaleID { get; set; }
+    public int ProductID { get; set; }
+    public int CustomerID { get; set; }
+    public decimal Amount { get; set; }
+}
+
+public class Customer
+{
+    public int CustomerID { get; set; }
+    public string Name { get; set; }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        // Sample Products
+        List<Product> products = new List<Product>
+        {
+            new Product { ProductID = 1, Name = "Laptop" },
+            new Product { ProductID = 2, Name = "Phone" },
+            new Product { ProductID = 3, Name = "Tablet" }
+        };
+
+        // Sample Sales
+        List<Sale> sales = new List<Sale>
+        {
+            new Sale { SaleID = 1, ProductID = 1, CustomerID = 1, Amount = 1200 },
+            new Sale { SaleID = 2, ProductID = 2, CustomerID = 2, Amount = 500 },
+            new Sale { SaleID = 3, ProductID = 1, CustomerID = 3, Amount = 800 },
+            new Sale { SaleID = 4, ProductID = 3, CustomerID = 1, Amount = 400 },
+            new Sale { SaleID = 5, ProductID = 2, CustomerID = 1, Amount = 700 },
+            new Sale { SaleID = 6, ProductID = 1, CustomerID = 2, Amount = 1500 }
+        };
+
+        // Sample Customers
+        List<Customer> customers = new List<Customer>
+        {
+            new Customer { CustomerID = 1, Name = "Alice" },
+            new Customer { CustomerID = 2, Name = "Bob" },
+            new Customer { CustomerID = 3, Name = "Charlie" }
+        };
+
+        // LINQ Query to cover all required operations
+        var query = from sale in sales
+                    join product in products on sale.ProductID equals product.ProductID
+                    join customer in customers on sale.CustomerID equals customer.CustomerID
+                    group sale by product.Name into productGroup
+                    where productGroup.Sum(s => s.Amount) > 1000  // Filter products with sales > 1000
+                    orderby productGroup.Sum(s => s.Amount) descending  // Sort by total sales
+                    select new
+                    {
+                        ProductName = productGroup.Key,
+                        TotalSales = productGroup.Sum(s => s.Amount),
+                        AverageSales = productGroup.Average(s => s.Amount),
+                        MaxSales = productGroup.Max(s => s.Amount),
+                        MinSales = productGroup.Min(s => s.Amount),
+                        Customers = productGroup.Select(s => customer.Name).Distinct(),
+                        SalesDetails = productGroup.Select(s => new { s.SaleID, s.Amount, customerName = customer.Name })
+                    };
+
+        // Output the results
+        foreach (var item in query)
+        {
+            Console.WriteLine($"Product: {item.ProductName}");
+            Console.WriteLine($"Total Sales: {item.TotalSales:C}");
+            Console.WriteLine($"Average Sales: {item.AverageSales:C}");
+            Console.WriteLine($"Max Sale: {item.MaxSales:C}");
+            Console.WriteLine($"Min Sale: {item.MinSales:C}");
+            Console.WriteLine("Sold to customers:");
+            foreach (var customer in item.Customers)
+            {
+                Console.WriteLine($"  {customer}");
+            }
+
+            Console.WriteLine("Sales Details:");
+            foreach (var sale in item.SalesDetails)
+            {
+                Console.WriteLine($"  Sale ID: {sale.SaleID}, Amount: {sale.Amount:C}, Customer: {sale.customerName}");
+            }
+            Console.WriteLine(new string('-', 50));
+        }
+    }
+}
+
+
+=========================================================LINQ Joins, Left, Right, Self, Cross, Union==========================================================
+
+public class Employee
+{
+    public int EmployeeID { get; set; }
+    public string Name { get; set; }
+    public int? ManagerID { get; set; }
+    public int DepartmentID { get; set; }
+}
+
+public class Department
+{
+    public int DepartmentID { get; set; }
+    public string Name { get; set; }
+}
+
+public class Product
+{
+    public int ProductID { get; set; }
+    public string Name { get; set; }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        List<Employee> employees = new List<Employee>
+        {
+            new Employee { EmployeeID = 1, Name = "Alice", ManagerID = null, DepartmentID = 1 },
+            new Employee { EmployeeID = 2, Name = "Bob", ManagerID = 1, DepartmentID = 2 },
+            new Employee { EmployeeID = 3, Name = "Charlie", ManagerID = 1, DepartmentID = 1 },
+            new Employee { EmployeeID = 4, Name = "David", ManagerID = 2, DepartmentID = 2 }
+        };
+
+        List<Department> departments = new List<Department>
+        {
+            new Department { DepartmentID = 1, Name = "HR" },
+            new Department { DepartmentID = 2, Name = "IT" }
+        };
+
+        List<Product> products = new List<Product>
+        {
+            new Product { ProductID = 1, Name = "Laptop" },
+            new Product { ProductID = 2, Name = "Phone" },
+            new Product { ProductID = 3, Name = "Tablet" }
+        };
+
+        // INNER JOIN Example
+        var innerJoin = from e in employees
+                        join d in departments on e.DepartmentID equals d.DepartmentID
+                        select new
+                        {
+                            e.Name,
+                            DepartmentName = d.Name
+                        };
+
+        // LEFT JOIN Example
+        var leftJoin = from e in employees
+                       join d in departments on e.DepartmentID equals d.DepartmentID into deptGroup
+                       from d in deptGroup.DefaultIfEmpty()
+                       select new
+                       {
+                           e.Name,
+                           DepartmentName = d?.Name ?? "No Department"
+                       };
+
+        // CROSS JOIN Example
+        var crossJoin = from e in employees
+                        from p in products
+                        select new
+                        {
+                            e.Name,
+                            p.Name
+                        };
+
+        // SELF JOIN Example
+        var selfJoin = from e1 in employees
+                       join e2 in employees on e1.ManagerID equals e2.EmployeeID into managerGroup
+                       from manager in managerGroup.DefaultIfEmpty()
+                       select new
+                       {
+                           EmployeeName = e1.Name,
+                           ManagerName = manager?.Name ?? "No Manager"
+                       };
+
+        // UNION Example
+        var department1 = new List<string> { "HR", "IT" };
+        var department2 = new List<string> { "IT", "Sales" };
+
+        var union = department1.Union(department2);
+
+        // UNION ALL Example
+        var departmentAll1 = new List<string> { "HR", "IT" };
+        var departmentAll2 = new List<string> { "IT", "Sales" };
+
+        var unionAll = departmentAll1.Concat(departmentAll2);
+
+        // Output results for each case
+        Console.WriteLine("INNER JOIN:");
+        foreach (var item in innerJoin) Console.WriteLine($"{item.Name}, {item.DepartmentName}");
+
+        Console.WriteLine("\nLEFT JOIN:");
+        foreach (var item in leftJoin) Console.WriteLine($"{item.Name}, {item.DepartmentName}");
+
+        Console.WriteLine("\nCROSS JOIN:");
+        foreach (var item in crossJoin) Console.WriteLine($"{item.Name}, {item.Name}");
+
+        Console.WriteLine("\nSELF JOIN:");
+        foreach (var item in selfJoin) Console.WriteLine($"{item.EmployeeName}, {item.ManagerName}");
+
+        Console.WriteLine("\nUNION:");
+        foreach (var dept in union) Console.WriteLine(dept);
+
+        Console.WriteLine("\nUNION ALL:");
+        foreach (var dept in unionAll) Console.WriteLine(dept);
+    }
+}
+====================================================================Class Relations=================================================================
+----------------------------------------------// One-to-One relationship-------------------------------------------
+public class Person
+{
+    public int PersonId { get; set; }
+    public string Name { get; set; }
+    
+    // One-to-One relationship
+    public Passport Passport { get; set; }
+}
+
+public class Passport
+{
+    public int PassportId { get; set; }
+    public string PassportNumber { get; set; }  
+	
+	 // One-to-One relationship
+    public int PersonId { get; set; }
+    public Person Person { get; set; }
+}
+----------------------------------------------// One-to-Many relationship-------------------------------------------
+public class Department
+{
+    public int DepartmentId { get; set; }
+    public string Name { get; set; }
+    
+    // One-to-Many relationship
+    public List<Employee> Employees { get; set; }
+}
+
+public class Employee
+{
+    public int EmployeeId { get; set; }
+    public string Name { get; set; }   
+	
+	 // Many-to-One relationship (Inverse of One-to-Many)
+    public int DepartmentId { get; set; }
+    public Department Department { get; set; }
+}
+----------------------------------------------// Many-to-Many relationship-------------------------------------------
+public class Student
+{
+    public int StudentId { get; set; }
+    public string Name { get; set; }
+    
+    // Many-to-Many relationship
+    public List<StudentCourse> StudentCourses { get; set; }
+}
+
+public class Course
+{
+    public int CourseId { get; set; }
+    public string Title { get; set; }
+    
+    // Many-to-Many relationship
+    public List<StudentCourse> StudentCourses { get; set; }
+}
+
+public class StudentCourse
+{
+    public int StudentId { get; set; }
+    public Student Student { get; set; }
+    
+    public int CourseId { get; set; }
+    public Course Course { get; set; }
+}
+----------------------------------------------// One-to-Many relationship with Entity Framework -------------------------------------------
+public class Department
+{
+    public int DepartmentId { get; set; }
+    public string Name { get; set; }
+
+    // One-to-Many: A department can have many employees
+    public ICollection<Employee> Employees { get; set; }
+}
+
+public class Employee
+{
+    public int EmployeeId { get; set; }
+    public string Name { get; set; }
+
+    // Many-to-One: An employee belongs to one department
+    public int DepartmentId { get; set; }
+    public Department Department { get; set; }
+}
+=====================================================One-to-Many Relationship=====================================================================================
+
+public class Department
+{
+    public int DepartmentId { get; set; }
+    public string Name { get; set; }
+    
+    // One-to-Many relationship: A department can have many employees
+    public List<Employee> Employees { get; set; } = new List<Employee>();
+}
+
+public class Employee
+{
+    public int EmployeeId { get; set; }
+    public string Name { get; set; }
+
+    // Many-to-One relationship: An employee belongs to one department
+    public int DepartmentId { get; set; }
+    public Department Department { get; set; }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        // Create departments
+        Department hrDepartment = new Department { DepartmentId = 1, Name = "HR" };
+        Department itDepartment = new Department { DepartmentId = 2, Name = "IT" };
+
+        // Create employees
+        Employee emp1 = new Employee { EmployeeId = 1, Name = "Alice", Department = hrDepartment };
+        Employee emp2 = new Employee { EmployeeId = 2, Name = "Bob", Department = itDepartment };
+        Employee emp3 = new Employee { EmployeeId = 3, Name = "Charlie", Department = hrDepartment };
+        Employee emp4 = new Employee { EmployeeId = 4, Name = "David", Department = itDepartment };
+
+        // Add employees to departments
+        hrDepartment.Employees.Add(emp1);
+        hrDepartment.Employees.Add(emp3);
+        itDepartment.Employees.Add(emp2);
+        itDepartment.Employees.Add(emp4);
+
+        // Print departments and their employees
+        Console.WriteLine("Departments and Employees:");
+        foreach (var department in new List<Department> { hrDepartment, itDepartment })
+        {
+            Console.WriteLine($"Department: {department.Name}");
+            foreach (var employee in department.Employees)
+            {
+                Console.WriteLine($"  Employee: {employee.Name}");
+            }
+        }
+    }
+}
+Output:
+Departments and Employees:
+Department: HR
+  Employee: Alice
+  Employee: Charlie
+Department: IT
+  Employee: Bob
+  Employee: David
+===========================================================Many-to-Many Relationship===========================================================================
+
+public class Student
+{
+    public int StudentId { get; set; }
+    public string Name { get; set; }
+    
+    // Many-to-Many relationship: A student can enroll in many courses
+    public List<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
+}
+
+public class Course
+{
+    public int CourseId { get; set; }
+    public string Title { get; set; }
+    
+    // Many-to-Many relationship: A course can have many students
+    public List<StudentCourse> StudentCourses { get; set; } = new List<StudentCourse>();
+}
+
+public class StudentCourse
+{
+    public int StudentId { get; set; }
+    public Student Student { get; set; }
+
+    public int CourseId { get; set; }
+    public Course Course { get; set; }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        // Create students
+        Student student1 = new Student { StudentId = 1, Name = "John" };
+        Student student2 = new Student { StudentId = 2, Name = "Sara" };
+
+        // Create courses
+        Course course1 = new Course { CourseId = 1, Title = "Math" };
+        Course course2 = new Course { CourseId = 2, Title = "Science" };
+        
+        // Create many-to-many relationship through StudentCourse
+        StudentCourse sc1 = new StudentCourse { Student = student1, Course = course1 };
+        StudentCourse sc2 = new StudentCourse { Student = student1, Course = course2 };
+        StudentCourse sc3 = new StudentCourse { Student = student2, Course = course1 };
+
+        // Add relationships to the students and courses
+        student1.StudentCourses.Add(sc1);
+        student1.StudentCourses.Add(sc2);
+        student2.StudentCourses.Add(sc3);
+
+        course1.StudentCourses.Add(sc1);
+        course1.StudentCourses.Add(sc3);
+        course2.StudentCourses.Add(sc2);
+
+        // Print students and their enrolled courses
+        Console.WriteLine("Students and their Courses:");
+        foreach (var student in new List<Student> { student1, student2 })
+        {
+            Console.WriteLine($"Student: {student.Name}");
+            foreach (var studentCourse in student.StudentCourses)
+            {
+                Console.WriteLine($"  Enrolled in: {studentCourse.Course.Title}");
+            }
+        }
+
+        // Print courses and their enrolled students
+        Console.WriteLine("\nCourses and their Students:");
+        foreach (var course in new List<Course> { course1, course2 })
+        {
+            Console.WriteLine($"Course: {course.Title}");
+            foreach (var studentCourse in course.StudentCourses)
+            {
+                Console.WriteLine($"  Student: {studentCourse.Student.Name}");
+            }
+        }
+    }
+}
+Output:
+Students and their Courses:
+Student: John
+  Enrolled in: Math
+  Enrolled in: Science
+Student: Sara
+  Enrolled in: Math
+
+Courses and their Students:
+Course: Math
+  Student: John
+  Student: Sara
+Course: Science
+  Student: John
+  ============================================================EF Transaction =====================================================================
+  using (var context = new ApplicationDbContext())
+{
+    using (var transaction = context.Database.BeginTransaction())
+    {
+        try
+        {
+            var department = new Department { Name = "Engineering" };
+            context.Departments.Add(department);
+            context.SaveChanges();
+
+            var employee = new Employee { Name = "George", DepartmentId = department.DepartmentId };
+            context.Employees.Add(employee);
+            context.SaveChanges();
+
+            // Commit the transaction if everything is successful
+            transaction.Commit();
+        }
+        catch (Exception)
+        {
+            // Rollback if any error occurs
+            transaction.Rollback();
+            Console.WriteLine("An error occurred. Changes rolled back.");
+        }
+    }
+}
+===============================================================Bootstrap  ==============================================================
+col: Basic class for column layout (works for all screen sizes)
+col-sm-: Small devices (tablets, ≥576px)
+col-md-: Medium devices (desktops, ≥768px)
+col-lg-: Large devices (larger desktops, ≥992px)
+col-xl-: Extra large devices (≥1200px)
+col-xxl-: Extra extra large devices (≥1400px)
+------------------------------------------------------------------------------------------------------------------------------
+1. Layout Classes
+------------------------------------------------------------------------------------------------------------------------------
+container: Defines a fixed-width container that is responsive.
+container-fluid: Defines a full-width container that spans the entire width of the viewport.
+row: Defines a row within the grid system, typically used to contain columns.
+col: Defines a column. You can specify column sizes using col-1 to col-12 or use the responsive grid system classes like col-md-6.
+col-{breakpoint}-{size}: Defines a column of a specific size based on breakpoints, e.g., col-sm-4, col-lg-6.
+------------------------------------------------------------------------------------------------------------------------------
+2. Typography
+------------------------------------------------------------------------------------------------------------------------------
+text-{alignment}: Controls text alignment. (text-center, text-right, text-left, text-justify)
+font-weight-{value}: Controls font weight. (font-weight-bold, font-weight-light)
+text-muted: Applies muted (lighter) text color.
+text-primary: Applies primary color (blue by default).
+display-{size}: Applies large headings. (display-1, display-2, etc.)
+lead: Applies large font size to the first paragraph of a section.
+text-uppercase: Capitalizes all letters.
+text-lowercase: Converts text to lowercase.
+text-capitalize: Capitalizes the first letter of each word.
+------------------------------------------------------------------------------------------------------------------------------
+3. Colors and Backgrounds
+------------------------------------------------------------------------------------------------------------------------------
+bg-{color}: Sets background color. (bg-primary, bg-success, bg-danger, etc.)
+text-{color}: Changes text color. (text-success, text-danger, text-info, etc.)
+bg-gradient: Applies a gradient background to an element.
+text-white: Changes text color to white.
+------------------------------------------------------------------------------------------------------------------------------
+4. Spacing
+------------------------------------------------------------------------------------------------------------------------------
+m-{size}: Margin, e.g., m-3, m-0 (all sides).
+p-{size}: Padding, e.g., p-3, p-0 (all sides).
+mt-{size}, mb-{size}, ml-{size}, mr-{size}: Margin top, bottom, left, and right.
+pt-{size}, pb-{size}, pl-{size}, pr-{size}: Padding top, bottom, left, and right.
+gap-{size}: Sets the gap between flex or grid items. (gap-1, gap-2, etc.)
+------------------------------------------------------------------------------------------------------------------------------
+5. Flexbox and Grid
+------------------------------------------------------------------------------------------------------------------------------
+d-flex: Applies Flexbox layout to an element.
+flex-row: Arranges flex items in a row (default).
+flex-column: Arranges flex items in a column.
+justify-content-{value}: Aligns items along the main axis. (justify-content-center, justify-content-between)
+align-items-{value}: Aligns items along the cross axis. (align-items-center, align-items-start)
+flex-grow-{value}: Specifies how flex items grow. (flex-grow-1, flex-grow-0)
+flex-shrink-{value}: Specifies how flex items shrink. (flex-shrink-1, flex-shrink-0)
+flex-wrap: Allows flex items to wrap into multiple lines.
+flex-fill: Allows flex item to fill the available space.
+grid-{breakpoint}-{size}: Specifies column sizes in grid for different breakpoints.
+------------------------------------------------------------------------------------------------------------------------------
+6. Buttons
+------------------------------------------------------------------------------------------------------------------------------
+btn: The base class for buttons.
+btn-{color}: Button color classes. (btn-primary, btn-danger, btn-success, etc.)
+btn-lg: Large button.
+btn-sm: Small button.
+btn-block: Makes the button span the full width of its parent container.
+btn-outline-{color}: Creates a button with an outline instead of a filled background.
+------------------------------------------------------------------------------------------------------------------------------
+7. Forms
+------------------------------------------------------------------------------------------------------------------------------
+form-control: Standard input field styling for input, textarea, and select elements.
+form-check: Styles checkboxes and radio buttons.
+form-check-input: Styles the input of a checkbox or radio button.
+form-check-label: Styles the label of a checkbox or radio button.
+form-select: Styles a dropdown/select input field.
+form-text: Provides additional text below form controls, e.g., hints or error messages.
+is-valid, is-invalid: Applies validation state classes to inputs.
+input-group: Combines multiple input fields into one.
+input-group-prepend, input-group-append: Adds additional elements like icons to input fields.
+------------------------------------------------------------------------------------------------------------------------------
+8. Modals
+------------------------------------------------------------------------------------------------------------------------------
+modal: Base class for modals.
+modal-dialog: The container for modal content.
+modal-content: Modal content wrapper.
+modal-header, modal-body, modal-footer: Defines the parts of a modal.
+modal-backdrop: Creates a backdrop behind the modal.
+------------------------------------------------------------------------------------------------------------------------------
+9. Alerts
+------------------------------------------------------------------------------------------------------------------------------
+alert: Base class for alerts.
+alert-{color}: Defines the color of an alert. (alert-success, alert-danger, alert-warning, etc.)
+alert-dismissible: Makes the alert dismissible.
+alert-link: Adds a link style to a link inside an alert.
+------------------------------------------------------------------------------------------------------------------------------
+10. Cards
+------------------------------------------------------------------------------------------------------------------------------
+card: The base class for cards.
+card-header: Header section inside a card.
+card-body: Main content area inside the card.
+card-footer: Footer section inside a card.
+card-title, card-text: Defines the title and text inside a card.
+card-img-top, card-img-bottom: Adds images to a card.
+------------------------------------------------------------------------------------------------------------------------------
+11. Tables
+------------------------------------------------------------------------------------------------------------------------------
+table: Base class for tables.
+table-bordered: Adds borders around the table.
+table-striped: Adds striped rows to the table.
+table-hover: Adds hover effect to rows.
+table-sm: Makes the table compact.
+table-responsive: Makes the table scrollable on small screens.
+------------------------------------------------------------------------------------------------------------------------------
+12. Badges
+------------------------------------------------------------------------------------------------------------------------------
+badge: Base class for badges.
+badge-{color}: Badge color classes. (badge-primary, badge-secondary, etc.)
+------------------------------------------------------------------------------------------------------------------------------
+13. Pagination
+------------------------------------------------------------------------------------------------------------------------------
+pagination: Base class for pagination.
+page-item: Used for individual pagination items.
+page-link: Styles the links inside pagination.
+pagination-lg, pagination-sm: Makes pagination larger or smaller.
+------------------------------------------------------------------------------------------------------------------------------
+14. Tooltips
+------------------------------------------------------------------------------------------------------------------------------
+data-bs-toggle="tooltip": Used to activate a tooltip on hover.
+data-bs-placement: Specifies the placement of the tooltip. (top, bottom, left, right).
+------------------------------------------------------------------------------------------------------------------------------
+15. Popovers
+------------------------------------------------------------------------------------------------------------------------------
+data-bs-toggle="popover": Activates a popover on click or hover.
+popover-header, popover-body: Defines the header and body of a popover.
+------------------------------------------------------------------------------------------------------------------------------
+16. Collapse
+------------------------------------------------------------------------------------------------------------------------------
+collapse: Used to hide and show content dynamically.
+collapse.show: Shows the collapsed element.
+------------------------------------------------------------------------------------------------------------------------------
+17. Scrollspy
+------------------------------------------------------------------------------------------------------------------------------
+data-bs-spy="scroll": Makes an element scrollable and highlights navigation items based on scroll position.
+------------------------------------------------------------------------------------------------------------------------------
+18. Toasts
+------------------------------------------------------------------------------------------------------------------------------
+toast: Base class for toasts.
+toast-header, toast-body: Defines the header and body of the toast.
+toast-success, toast-danger: Customizes the toast color.
+------------------------------------------------------------------------------------------------------------------------------
+19. Icons
+------------------------------------------------------------------------------------------------------------------------------
+bi-{icon}: Bootstrap Icons (requires including Bootstrap Icons library). Example: bi-house-door for a house icon.
+------------------------------------------------------------------------------------------------------------------------------
+20. Utilities
+------------------------------------------------------------------------------------------------------------------------------
+visibility-hidden: Hides an element but keeps it in the document layout.
+d-none: Hides an element completely.
+d-block, d-inline-block: Makes an element display as a block or inline block.
+rounded, rounded-{size}: Applies rounded corners to elements.
+border, border-{size}: Adds a border to an element.
+shadow, shadow-lg: Applies shadows to elements.
+------------------------------------------------------------------------------------------------------------------------------
+21. Responsive Design
+------------------------------------------------------------------------------------------------------------------------------
+d-{breakpoint}-none, d-{breakpoint}-block: Changes display type at different breakpoints. Example: d-md-none hides an element on medium and larger screens.
+col-{breakpoint}-{size}: Column size at different breakpoints. Example: col-md-4 defines 4 columns in medium screens.
+------------------------------------------------------------------------------------------------------------------------------
+22. Positioning
+------------------------------------------------------------------------------------------------------------------------------
+position-static: Default positioning.
+position-relative: Positions the element relative to its normal position.
+position-absolute: Positions the element relative to its nearest positioned ancestor.
+position-fixed: Positions the element relative to the viewport.
+position-sticky: Positions the element based on the user's scroll.
+===============================================================Bootstrap HTML ==============================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <!-- Include Bootstrap CSS from CDN for styling the page -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Main container for page content -->
+    <!-- 'container' class ensures that the content is centered with some margin from the sides -->
+    <div class="container my-5">        
+        <!-- Row for Employee Table -->
+        <!-- 'row' class creates a horizontal row of columns. 'mb-4' adds margin-bottom to the row -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <!-- 'card' class is used to create a card with a border and some padding. This holds the table -->
+                <div class="card">
+                    <!-- Card Header: Defines the header section of the card -->
+                    <div class="card-header">
+                        <h5>Employee Table</h5>
+                    </div>
+                    <!-- Card Body: Contains the main content of the card, in this case, the table -->
+                    <div class="card-body">
+                        <!-- 'table' creates a basic table structure. 'table-bordered' adds borders around table cells -->
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <!-- Table Header Row -->
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Position</th>
+                                    <th>Salary</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Table Body with Employee Data -->
+                                <tr>
+                                    <td>1</td>
+                                    <td>John Doe</td>
+                                    <td>Manager</td>
+                                    <td>$5000</td>
+                                </tr>
+                           
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Row for the Employee Form and Company Info Card -->
+        <div class="row">
+            <!-- First Column for the Employee Form -->
+            <!-- 'col-md-6' means that this column takes up 6 grid spaces on medium-sized screens, half the width -->
+            <div class="col-md-6">
+                <!-- 'card' class creates a card container for the form -->
+                <div class="card">
+                    <!-- Card Header -->
+                    <div class="card-header">
+                        <h5>Employee Form</h5>
+                    </div>
+                    <!-- Card Body containing the form -->
+                    <div class="card-body">
+                        <!-- 'form' tag is used to create a form -->
+                        <form>
+                            <!-- 'mb-3' adds margin-bottom to form controls for better spacing -->
+                            <div class="mb-3">
+                                <!-- 'form-label' class is used to style the labels of form elements -->
+                                <label for="employeeName" class="form-label">Name</label>
+                                <!-- 'form-control' is used to apply standard Bootstrap styling to input elements -->
+                                <input type="text" class="form-control" id="employeeName" placeholder="Enter employee name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="employeePosition" class="form-label">Position</label>
+                                <input type="text" class="form-control" id="employeePosition" placeholder="Enter position">
+                            </div>
+                            <div class="mb-3">
+                                <label for="employeeSalary" class="form-label">Salary</label>
+                                <input type="number" class="form-control" id="employeeSalary" placeholder="Enter salary">
+                            </div>
+                            <!-- 'btn' and 'btn-primary' are used to style the submit button as a Bootstrap primary button -->
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <!-- Second Column for the Company Information Card -->
+            <div class="col-md-6">
+                <!-- 'card' is used to group company information into a styled container -->
+                <div class="card">
+                    <!-- Card Header -->
+                    <div class="card-header">
+                        <h5>About the Company</h5>
+                    </div>
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <!-- 'card-title' is used to style the title inside the card -->
+                        <h6 class="card-title">Our Mission</h6>
+                        <!-- 'card-text' applies consistent styling for the card's text content -->
+                        <p class="card-text">
+                            Our mission is to provide excellent services to our clients, focusing on innovation and customer satisfaction.
+                        </p>
+                        <!-- 'btn btn-primary' styles the 'Learn More' button as a primary Bootstrap button -->
+                        <a href="#" class="btn btn-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Include Bootstrap JS and Popper.js from CDN (for modal, tooltips, etc.) -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
+===============================================================Bootstrap HTML Every thing in one==============================================================
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Bootstrap 5 Example</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="container my-5">
+
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="#">Navbar</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Pricing</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Jumbotron -->
+        <div class="jumbotron text-center mb-5">
+            <h1 class="display-4">Welcome to Bootstrap 5</h1>
+            <p class="lead">This page demonstrates every feature and control available in Bootstrap 5.</p>
+        </div>
+
+        <!-- Grid System -->
+        <h2>Grid System</h2>
+        <div class="row mb-4">
+            <div class="col-12 col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Card 1</h5>
+                        <p class="card-text">Responsive grid system using columns.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Card 2</h5>
+                        <p class="card-text">Another card in the grid.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Card 3</h5>
+                        <p class="card-text">Cards adjust based on screen size.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <h2>Buttons</h2>
+        <button class="btn btn-primary">Primary</button>
+        <button class="btn btn-secondary">Secondary</button>
+        <button class="btn btn-success">Success</button>
+        <button class="btn btn-danger">Danger</button>
+        <button class="btn btn-warning">Warning</button>
+        <button class="btn btn-info">Info</button>
+        <button class="btn btn-light">Light</button>
+        <button class="btn btn-dark">Dark</button>
+
+        <!-- Form Controls -->
+        <h2>Form Controls</h2>
+        <form>
+            <div class="mb-3">
+                <label for="name" class="form-label">Name</label>
+                <input type="text" class="form-control" id="name" placeholder="Enter name">
+            </div>
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" class="form-control" id="email" placeholder="Enter email">
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="password" placeholder="Enter password">
+            </div>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+        <!-- Alerts -->
+        <h2>Alerts</h2>
+        <div class="alert alert-success" role="alert">This is a success alert!</div>
+        <div class="alert alert-warning" role="alert">This is a warning alert!</div>
+        <div class="alert alert-danger" role="alert">This is a danger alert!</div>
+        <div class="alert alert-info" role="alert">This is an info alert!</div>
+
+        <!-- Badge -->
+        <h2>Badges</h2>
+        <span class="badge bg-primary">Primary Badge</span>
+        <span class="badge bg-secondary">Secondary Badge</span>
+        <span class="badge bg-success">Success Badge</span>
+        <span class="badge bg-danger">Danger Badge</span>
+
+        <!-- List Group -->
+        <h2>List Group</h2>
+        <ul class="list-group">
+            <li class="list-group-item">List Item 1</li>
+            <li class="list-group-item">List Item 2</li>
+            <li class="list-group-item">List Item 3</li>
+        </ul>
+
+        <!-- Pagination -->
+        <h2>Pagination</h2>
+        <nav aria-label="Page navigation">
+            <ul class="pagination">
+                <li class="page-item"><a class="page-link" href="#">Previous</a></li>
+                <li class="page-item"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                <li class="page-item"><a class="page-link" href="#">Next</a></li>
+            </ul>
+        </nav>
+
+        <!-- Tables -->
+        <h2>Tables</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">First Name</th>
+                    <th scope="col">Last Name</th>
+                    <th scope="col">Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th scope="row">1</th>
+                    <td>John</td>
+                    <td>Doe</td>
+                    <td>john@example.com</td>
+                </tr>
+              
+            </tbody>
+        </table>
+
+        <!-- Cards -->
+        <h2>Cards</h2>
+        <div class="card" style="width: 18rem;">
+            <img src="https://via.placeholder.com/150" class="card-img-top" alt="Card image">
+            <div class="card-body">
+                <h5 class="card-title">Card Title</h5>
+                <p class="card-text">This is an example card with an image.</p>
+                <a href="#" class="btn btn-primary">Go somewhere</a>
+            </div>
+        </div>
+
+        <!-- Modals -->
+        <h2>Modals</h2>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+            Launch Modal
+        </button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Modal Title</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        This is the body of the modal.
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tooltips -->
+        <h2>Tooltips</h2>
+        <button type="button" class="btn btn-info" data-bs-toggle="tooltip" data-bs-placement="top" title="Tooltip on top">
+            Hover me
+        </button>
+
+        <!-- Carousel -->
+        <h2>Carousel</h2>
+        <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img src="https://via.placeholder.com/800x400" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                    <img src="https://via.placeholder.com/800x400" class="d-block w-100" alt="...">
+                </div>
+                <div class="carousel-item">
+                    <img src="https://via.placeholder.com/800x400" class="d-block w-100" alt="...">
+                </div>
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
+    <script>
+        // Initialize tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
+</body>
+
+</html>
+=================================================================================CSS=====================================================
+1. Color and Background
+------------------------------------------------------------------------------------------------------------------------------
+color: Defines the color of text.
+Example: color: #333;
+background-color: Sets the background color of an element.
+Example: background-color: #f5f5f5;
+background-image: Sets an image as the background for an element.
+Example: background-image: url('image.jpg');
+background-repeat: Controls the repetition of the background image.
+Example: background-repeat: no-repeat;
+------------------------------------------------------------------------------------------------------------------------------
+2. Text and Fonts
+------------------------------------------------------------------------------------------------------------------------------
+font-family: Specifies the font to be used for text.
+Example: font-family: Arial, sans-serif;
+font-size: Sets the size of the text.
+Example: font-size: 16px;
+font-weight: Defines the thickness of text.
+Example: font-weight: bold;
+font-style: Defines the style of the font (normal, italic, oblique).
+Example: font-style: italic;
+text-align: Specifies the horizontal alignment of text.
+Example: text-align: center;
+line-height: Sets the amount of space between lines of text.
+Example: line-height: 1.5;
+text-transform: Controls the capitalization of text.
+Example: text-transform: uppercase;
+letter-spacing: Adjusts the space between characters in text.
+Example: letter-spacing: 1px;
+word-spacing: Adjusts the space between words in text.
+Example: word-spacing: 2px;
+text-decoration: Specifies text decoration like underline, line-through, or none.
+Example: text-decoration: underline;
+------------------------------------------------------------------------------------------------------------------------------
+3. Box Model (Padding, Margin, and Border)
+------------------------------------------------------------------------------------------------------------------------------
+margin: Sets the space around an element.
+Example: margin: 20px;
+padding: Sets the space inside an element, around its content.
+Example: padding: 10px;
+border: Defines the border around an element.
+Example: border: 1px solid black;
+border-radius: Rounds the corners of an element.
+Example: border-radius: 10px;
+box-sizing: Specifies how the total width and height of an element is calculated.
+Example: box-sizing: border-box;
+------------------------------------------------------------------------------------------------------------------------------
+4. Display and Visibility
+------------------------------------------------------------------------------------------------------------------------------
+display: Specifies how an element is displayed.
+Example: display: block;, display: inline;, display: flex;
+visibility: Controls the visibility of an element.
+Example: visibility: hidden;
+overflow: Controls how overflow content is handled.
+Example: overflow: auto;
+z-index: Controls the stacking order of positioned elements.
+Example: z-index: 10;
+------------------------------------------------------------------------------------------------------------------------------
+5. Positioning
+------------------------------------------------------------------------------------------------------------------------------
+position: Specifies the positioning method for an element.
+Example: position: absolute;, position: relative;
+top, right, bottom, left: Specifies the position offset of an element.
+Example: top: 10px;, left: 50%;
+float: Floats an element to the left or right.
+Example: float: left;
+clear: Clears floated elements.
+Example: clear: both;
+------------------------------------------------------------------------------------------------------------------------------
+6. Flexbox and Grid
+------------------------------------------------------------------------------------------------------------------------------
+display: flex: Defines a flex container for flexbox layout.
+Example: display: flex;
+justify-content: Aligns flex items along the main axis.
+Example: justify-content: center;
+align-items: Aligns flex items along the cross axis.
+Example: align-items: flex-start;
+flex-direction: Defines the direction of flex items.
+Example: flex-direction: row;
+display: grid: Defines a grid container.
+Example: display: grid;
+grid-template-columns: Defines the number and size of columns in a grid layout.
+Example: grid-template-columns: repeat(3, 1fr);
+------------------------------------------------------------------------------------------------------------------------------
+7. Transitions and Animations
+------------------------------------------------------------------------------------------------------------------------------
+transition: Specifies the transition effect for changing properties.
+Example: transition: all 0.3s ease;
+transform: Applies 2D or 3D transformations to an element.
+Example: transform: rotate(45deg);
+animation: Specifies the animation for an element.
+Example: animation: fadeIn 2s ease-in-out;
+------------------------------------------------------------------------------------------------------------------------------
+8. Shadows and Effects
+------------------------------------------------------------------------------------------------------------------------------
+box-shadow: Adds shadow effects to an element.
+Example: box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.3);
+text-shadow: Adds shadow effects to text.
+Example: text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+------------------------------------------------------------------------------------------------------------------------------
+9. Media Queries and Responsive Design
+------------------------------------------------------------------------------------------------------------------------------
+@media: Used for defining responsive design rules based on screen size.
+Example:
+css
+Copy code
+@media (max-width: 768px) {
+  .example { 
+    font-size: 14px; 
+  }
+}
+max-width: Defines the maximum width of an element.
+Example: max-width: 100%;
+min-width: Specifies the minimum width of an element.
+Example: min-width: 300px;
+------------------------------------------------------------------------------------------------------------------------------
+10. Flex and Grid Layout (Alignment)
+------------------------------------------------------------------------------------------------------------------------------
+align-items: Aligns items vertically in a flex container.
+Example: align-items: center;
+justify-content: Aligns items horizontally in a flex container.
+Example: justify-content: space-between;
+flex-grow: Defines how much a flex item should grow relative to other items.
+Example: flex-grow: 1;
+flex-shrink: Defines how much a flex item should shrink.
+Example: flex-shrink: 0;
+------------------------------------------------------------------------------------------------------------------------------
+11. List Styles
+------------------------------------------------------------------------------------------------------------------------------
+list-style-type: Defines the style of list items (bullets, numbers).
+Example: list-style-type: disc;
+list-style-image: Specifies an image as the list marker.
+Example: list-style-image: url('bullet.png');
+list-style-position: Controls the positioning of list markers.
+Example: list-style-position: inside;
+------------------------------------------------------------------------------------------------------------------------------
+12. Tables
+------------------------------------------------------------------------------------------------------------------------------
+border-collapse: Controls the border style for tables.
+Example: border-collapse: collapse;
+table-layout: Defines the layout algorithm for table columns.
+Example: table-layout: fixed;
+caption-side: Defines the position of a table's caption.
+Example: caption-side: top;
+
+/* Table Styling */
+table {
+    width: 100%;
+    border-collapse: collapse; /* Collapses table borders into a single line */
+    margin: 20px 0; /* Adds space above and below the table */
+}
+
+/* Table Header Styling */
+th {
+    background-color: #f2f2f2; /* Light grey background for header */
+    text-align: left; /* Left-align text in headers */
+    padding: 12px 15px; /* Adds padding to header cells */
+    font-weight: bold; /* Makes text bold in header */
+    border: 1px solid #ddd; /* Adds a border to header cells */
+}
+
+/* Table Cell Styling */
+td {
+    text-align: center; /* Centers text in table data cells */
+    padding: 10px 15px; /* Adds padding to table data cells */
+    border: 1px solid #ddd; /* Adds a border around data cells */
+}
+
+/* Even Row Highlight */
+tr:nth-child(even) {
+    background-color: #f9f9f9; /* Adds light grey background for even rows */
+}
+
+/* Hover Effect for Rows */
+tr:hover {
+    background-color: #e2e2e2; /* Change row color when hovering */
+}
+
+/* First Row (Header) Styling */
+tr:first-child {
+    background-color: #f2f2f2; /* Sets background color for the first row */
+}
+
+/* Last Row Styling */
+tr:last-child {
+    background-color: #d9d9d9; /* Sets background color for the last row */
+}
+
+/* Targeting Specific Columns (e.g., First Column) */
+td:nth-child(1) {
+    font-weight: bold; /* Makes the first column bold */
+}
+
+/* Caption Styling */
+caption {
+    font-size: 1.5em; /* Increases the font size of the caption */
+    font-weight: bold; /* Makes caption text bold */
+    text-align: center; /* Centers the caption text */
+    margin-bottom: 10px; /* Adds margin below the caption */
+}
+
+/* Table Border Styling */
+table {
+    border: 2px solid #333; /* Adds a solid border around the table */
+}
+
+/* Spacing Between Rows */
+tr {
+    border-bottom: 1px solid #ddd; /* Adds a border between each row */
+}
+
+/* Styling for the first child of every row (First Cell) */
+tr:first-child td {
+    background-color: #f7f7f7; /* Background color for first row's cells */
+    font-weight: bold; /* Bold font for first row's cells */
+}
+
+/* Styling for the last cell in every row (Last Column) */
+tr td:last-child {
+    background-color: #f2f2f2; /* Light grey background for the last column */
+}
+
+/* Border-collapse behavior */
+table {
+    border-collapse: collapse;
+}
+
+/* Border-spacing (if border-collapse is not used) */
+table {
+    border-spacing: 10px; /* Adds space between borders of table cells */
+}
+
+------------------------------------------------------------------------------------------------------------------------------
+13. Cursor
+------------------------------------------------------------------------------------------------------------------------------
+cursor: Specifies the type of cursor to be displayed when pointing over an element.
+Example: cursor: pointer;
+------------------------------------------------------------------------------------------------------------------------------
+14. Opacity and Transparency
+------------------------------------------------------------------------------------------------------------------------------
+opacity: Sets the transparency level of an element.
+Example: opacity: 0.5;
+------------------------------------------------------------------------------------------------------------------------------
+15. Border Radius
+------------------------------------------------------------------------------------------------------------------------------
+border-radius: Rounds the corners of an element.
+Example: border-radius: 5px;
+------------------------------------------------------------------------------------------------------------------------------
+16. !important 
+------------------------------------------------------------------------------------------------------------------------------
+/* Normal rule */
+p {
+    color: blue;
+}
+
+/* Rule with !important */
+p {
+    color: red !important;
+}
+==============================================================================Jquery AJAX====================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>jQuery AJAX CRUD Operations Example</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<h1>CRUD Operations with jQuery AJAX</h1>
+
+<!-- Button to get all users -->
+<button id="getDataBtn">Get Users</button>
+
+<!-- Section to display users -->
+<div id="usersList"></div>
+
+<!-- Button to create a new user -->
+<button id="postDataBtn">Create User</button>
+
+<!-- Form to update user -->
+<h3>Update User</h3>
+<form id="updateUserForm">
+    <input type="number" id="updateUserId" placeholder="Enter user ID" required>
+    <input type="text" id="updateUserName" placeholder="Enter new name" required>
+    <button type="submit">Update User</button>
+</form>
+
+<!-- Button to delete a user -->
+<h3>Delete User</h3>
+<form id="deleteUserForm">
+    <input type="number" id="deleteUserId" placeholder="Enter user ID to delete" required>
+    <button type="submit">Delete User</button>
+</form>
+
+<div id="response"></div>
+
+<script>
+$(document).ready(function() {
+    // Fetch users (GET request)
+    $('#getDataBtn').click(function() {
+        $.ajax({
+            url: 'https://jsonplaceholder.typicode.com/users',  // Example GET URL
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                let result = '<h3>Users List:</h3><ul>';
+                response.forEach(function(user) {
+                    result += `<li>ID: ${user.id}, Name: ${user.name}, Email: ${user.email}</li>`;
+                });
+                result += '</ul>';
+                $('#usersList').html(result);
+            },
+            error: function(xhr, status, error) {
+                $('#usersList').html('<p>An error occurred while fetching the users.</p>');
+            }
+        });
+    });
+
+    // Create a new user (POST request)
+    $('#postDataBtn').click(function() {
+        const postData = {
+            name: "New User",
+            email: "newuser@example.com"
+        };
+
+        $.ajax({
+            url: 'https://jsonplaceholder.typicode.com/users',  // Example POST URL
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify(postData),
+            success: function(response) {
+                $('#response').html(`<p>User created with ID: ${response.id}</p>`);
+            },
+            error: function(xhr, status, error) {
+                $('#response').html('<p>An error occurred while creating the user.</p>');
+            }
+        });
+    });
+
+    // Update user (PUT request)
+    $('#updateUserForm').submit(function(e) {
+        e.preventDefault();
+
+        const userId = $('#updateUserId').val();
+        const userName = $('#updateUserName').val();
+
+        if (userId && userName) {
+            const updateData = {
+                name: userName
+            };
+
+            $.ajax({
+                url: `https://jsonplaceholder.typicode.com/users/${userId}`,  // Example PUT URL
+                type: 'PUT',
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify(updateData),
+                success: function(response) {
+                    $('#response').html(`<p>User ID ${userId} updated. New name: ${response.name}</p>`);
+                },
+                error: function(xhr, status, error) {
+                    $('#response').html('<p>An error occurred while updating the user.</p>');
+                }
+            });
+        } else {
+            $('#response').html('<p>Please provide both User ID and Name.</p>');
+        }
+    });
+
+    // Delete user (DELETE request)
+    $('#deleteUserForm').submit(function(e) {
+        e.preventDefault();
+
+        const userId = $('#deleteUserId').val();
+
+        if (userId) {
+            $.ajax({
+                url: `https://jsonplaceholder.typicode.com/users/${userId}`,  // Example DELETE URL
+                type: 'DELETE',
+                success: function(response) {
+                    $('#response').html(`<p>User ID ${userId} deleted successfully.</p>`);
+                },
+                error: function(xhr, status, error) {
+                    $('#response').html('<p>An error occurred while deleting the user.</p>');
+                }
+            });
+        } else {
+            $('#response').html('<p>Please provide a User ID to delete.</p>');
+        }
+    });
+});
+</script>
+
+</body>
+</html>
+==================================================================Jquery Frequently=======================================================================================
+
+1. DOM Manipulation
+------------------------------------------------------------------------------------------------------------------------------
+Selecting Elements
+$(selector): Selects elements in the DOM using a CSS selector.
+
+var element = $('#myId'); // Select by ID
+var elements = $('.myClass'); // Select by class
+var allDivs = $('div'); // Select all div elements
+Manipulating Content
+.text(): Get or set the text content of an element.
+
+var text = $('#myId').text(); // Get text
+$('#myId').text('New Text'); // Set text
+.html(): Get or set the HTML content of an element.
+
+var htmlContent = $('#myId').html(); // Get HTML
+$('#myId').html('<strong>New HTML Content</strong>'); // Set HTML
+.val(): Get or set the value of form elements (input, textarea, etc.).
+
+var value = $('#myInput').val(); // Get value
+$('#myInput').val('New Value'); // Set value
+Manipulating Attributes
+.attr(): Get or set an attribute of an element.
+
+var src = $('img').attr('src'); // Get image source
+$('img').attr('src', 'new-image.jpg'); // Set new image source
+.css(): Get or set CSS properties of an element.
+
+var backgroundColor = $('#myDiv').css('background-color'); // Get CSS property
+$('#myDiv').css('background-color', 'red'); // Set CSS property
+Adding/Removing Classes
+.addClass(): Add one or more classes to an element.
+
+$('#myElement').addClass('active');
+.removeClass(): Remove one or more classes from an element.
+
+$('#myElement').removeClass('active');
+.toggleClass(): Toggle the presence of a class.
+
+$('#myElement').toggleClass('active');
+DOM Insertion/Removal
+.append(): Insert content at the end of an element.
+
+$('#myDiv').append('<p>New Paragraph</p>');
+.prepend(): Insert content at the beginning of an element.
+
+$('#myDiv').prepend('<p>First Paragraph</p>');
+.remove(): Remove selected elements from the DOM.
+
+$('#myElement').remove();
+------------------------------------------------------------------------------------------------------------------------------
+2. Event Handling
+------------------------------------------------------------------------------------------------------------------------------
+Event Binding
+.click(): Bind a function to the click event.
+
+$('#myButton').click(function() {
+  alert('Button Clicked');
+});
+.on(): Attach an event handler to an element (supports delegation).
+
+$('#myDiv').on('click', '.childElement', function() {
+  alert('Child Element Clicked');
+});
+.hover(): Bind mouseover and mouseout events.
+
+$('#myDiv').hover(
+  function() { $(this).css('background-color', 'red'); },
+  function() { $(this).css('background-color', ''); }
+);
+.keyup(), .keydown(), .keypress(): Handle keyboard events.
+
+$('#myInput').keyup(function() {
+  alert('Key pressed!');
+});
+Event Delegation
+.on() (delegated events): Bind event handlers to dynamically added elements.
+
+$('#parentDiv').on('click', '.childElement', function() {
+  alert('Child Element Clicked');
+});
+------------------------------------------------------------------------------------------------------------------------------
+4. Animations and Effects
+------------------------------------------------------------------------------------------------------------------------------
+Show and Hide
+.show(): Display an element.
+
+$('#myDiv').show();
+.hide(): Hide an element.
+
+$('#myDiv').hide();
+.fadeIn(): Fade in an element.
+
+$('#myDiv').fadeIn();
+.fadeOut(): Fade out an element.
+
+$('#myDiv').fadeOut();
+.slideDown(): Slide an element down.
+
+$('#myDiv').slideDown();
+.slideUp(): Slide an element up.
+
+$('#myDiv').slideUp();
+Toggle
+.toggle(): Show or hide an element based on its current state.
+
+$('#myDiv').toggle();
+.fadeToggle(): Fade in or fade out an element.
+
+$('#myDiv').fadeToggle();
+Animation
+.animate(): Perform custom animations on CSS properties.
+
+$('#myDiv').animate({
+  opacity: 0.5,
+  left: '+=50'
+}, 1000); // Duration in milliseconds
+------------------------------------------------------------------------------------------------------------------------------
+5. Utilities
+------------------------------------------------------------------------------------------------------------------------------
+Data Attributes
+.data(): Store and retrieve data associated with an element.
+
+$('#myDiv').data('key', 'value'); // Set data
+var value = $('#myDiv').data('key'); // Get data
+Deferred and Promises
+$.Deferred(): Create a deferred object to manage asynchronous code execution.
+
+var deferred = $.Deferred();
+
+// Resolve or Reject the deferred object
+deferred.resolve('Success');
+deferred.reject('Error');
+
+// Chain `.done()`, `.fail()`, and `.always()` methods
+deferred.done(function(result) {
+  console.log(result); // Success
+}).fail(function(error) {
+  console.log(error); // Error
+});
+$.each(): Iterate over objects or arrays.
+
+$.each([1, 2, 3], function(index, value) {
+  console.log(index, value);
+});
+------------------------------------------------------------------------------------------------------------------------------
+6. Form Handling
+------------------------------------------------------------------------------------------------------------------------------
+Form Serialization
+.serialize(): Convert form data into a query string.
+
+var formData = $('#myForm').serialize();
+.serializeArray(): Convert form data into an array of objects.
+
+var formDataArray = $('#myForm').serializeArray();
+Form Reset
+.reset(): Reset a form to its default state.
+
+$('#myForm')[0].reset();
+==================================================================Jquery Validation=======================================================================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Validation with JSON Class Object</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+
+<h2>Form Data to JSON Object with Validation</h2>
+
+<form id="myForm">
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" name="name" required><br><br>
+
+    <label for="email">Email:</label><br>
+    <input type="email" id="email" name="email" required><br><br>
+
+    <label for="age">Age:</label><br>
+    <input type="number" id="age" name="age" required><br><br>
+
+    <label for="gender">Gender:</label><br>
+    <input type="radio" id="male" name="gender" value="male"> Male
+    <input type="radio" id="female" name="gender" value="female"> Female<br><br>
+
+    <label for="hobbies">Hobbies:</label><br>
+    <input type="checkbox" name="hobbies" value="reading"> Reading
+    <input type="checkbox" name="hobbies" value="sports"> Sports<br><br>
+
+    <label for="country">Country:</label><br>
+    <select id="country" name="country" required>
+        <option value="">Select a country</option>
+        <option value="USA">USA</option>
+        <option value="Canada">Canada</option>
+        <option value="UK">UK</option>
+    </select><br><br>
+
+    <input type="submit" value="Submit">
+</form>
+
+<div id="jsonOutput"></div>
+
+<script>
+$(document).ready(function() {
+    // Define the form data class
+    class FormDataModel {
+        constructor(name, email, age, gender, hobbies, country) {
+            this.name = name;
+            this.email = email;
+            this.age = age;
+            this.gender = gender;
+            this.hobbies = hobbies;
+            this.country = country;
+        }
+
+        // Validate all fields and return true if valid
+        validate() {
+            let errors = [];
+            if (!this.name) {
+                errors.push("Name is required.");
+            }
+            if (!this.email || !this.validateEmail(this.email)) {
+                errors.push("A valid email is required.");
+            }
+            if (!this.age || this.age <= 0) {
+                errors.push("Age must be a positive number.");
+            }
+            if (!this.gender) {
+                errors.push("Gender is required.");
+            }
+            if (this.hobbies.length === 0) {
+                errors.push("At least one hobby must be selected.");
+            }
+            if (!this.country) {
+                errors.push("Country is required.");
+            }
+            return errors;
+        }
+
+        // Email validation using regex
+        validateEmail(email) {
+            const emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+            return emailPattern.test(email);
+        }
+    }
+
+    // Handle form submission
+    $('#myForm').submit(function(e) {
+        e.preventDefault(); // Prevent default form submission
+        
+        // Collect form values
+        const name = $('#name').val();
+        const email = $('#email').val();
+        const age = $('#age').val();
+        const gender = $('input[name="gender"]:checked').val();
+        const hobbies = [];
+        $('input[name="hobbies"]:checked').each(function() {
+            hobbies.push($(this).val());
+        });
+        const country = $('#country').val();
+
+        // Create an instance of the FormDataModel
+        const formData = new FormDataModel(name, email, age, gender, hobbies, country);
+        
+        // Validate the form data
+        const validationErrors = formData.validate();
+        
+        // If there are validation errors, display them
+        if (validationErrors.length > 0) {
+            $('#jsonOutput').html('<ul><li>' + validationErrors.join('</li><li>') + '</li></ul>');
+        } else {
+            // If valid, show the form data as a JSON object
+            $('#jsonOutput').html('<pre>' + JSON.stringify(formData, null, 4) + '</pre>');
+        }
+    });
+});
+</script>
+
+</body>
+</html>
+==========================================================================Jquery Exanple=====================================================================================
+
+
+<div id="overlay" style="display:none;">
+    <div id="loading">
+        <img src="~/spiner.gif" alt="Loading..." style="padding-top:150px">
+    </div>
+</div>
+
+<div class="button-container">
+    <span id="logfileName"></span>
+    <select id="fileType">
+        <option value="text">text</option>
+        <option value="excel">excel</option>
+    </select>
+    
+    
+    <button id="fileButton">File</button>
+    <button id="processButton">Process</button>
+    <button id="downloadLogButton">LogFile</button>
+    <button id="saveButton">Save</button>
+    <button id="templateButton">Template</button>
+    <button id="clearButton">Clear</button>
+    <button id="backButton">Back</button>
+</div>
+
+<input type="file" id="fileInput">
+
+<div id="dataTableContainer">
+    <table id="dataTable" class="display">
+        <thead>
+            <tr>
+                <th>Country</th>
+                <th>StateName</th>
+                <th>StateCode</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Dummy row will be added dynamically -->
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTable
+            var dataTable = $('#dataTable').DataTable({
+                paging: true,
+                searching: false,
+                ordering: true,
+                order: [], // Set initial order to empty to keep original order
+                columns: [
+                    { title: "Country", data: "country" },
+                    { title: "State", data: "stateName" },
+                    { title: "State Code", data: "stateCode" },
+                    { title: "Status", data: "status" }
+                ],
+                language: {
+                    emptyTable: "" // Set to an empty string to hide the message
+                }
+            });
+
+            // Button to trigger file input click
+            $('#fileButton').click(function () {
+                $('#fileInput').click(); // Trigger file input click
+            });
+
+            // Function to validate file type
+            function validateFileType(fileInput) {
+                var selectedFileType = $('#fileType').val();
+                var allowedExtensions;
+
+                // Determine allowed file extensions based on dropdown selection
+                if (selectedFileType === 'text') {
+                    allowedExtensions = /(\.txt)$/i;
+                } else if (selectedFileType === 'excel') {
+                    allowedExtensions = /(\.xls|\.xlsx)$/i;
+                }
+
+                // Validate file extension
+                if (!allowedExtensions.exec(fileInput.files[0].name)) {
+                    alert("Invalid file type. Please select a " + selectedFileType + " file.");
+                    fileInput.value = ''; // Clear the file input
+                    return false; // Return false if the file type is invalid
+                }
+                return true; // Return true if the file type is valid
+            }
+
+            // Handle file selection
+            $('#fileInput').change(function (event) {
+                const fileInput = event.target;
+                const fileName = fileInput.files[0] ? fileInput.files[0].name : 'No file selected';
+                alert('Selected file: ' + fileName);
+
+                // Validate file type on file selection
+                validateFileType(fileInput);
+            });
+
+            // Process button click event
+            $('#processButton').click(function () {
+                var fileInput = $('#fileInput')[0];
+
+                // Check if a file is selected
+                if (fileInput.files.length === 0) {
+                    alert("Please select a file.");
+                    return; // Exit if no file is selected
+                }
+
+                // Validate file type before processing
+                if (!validateFileType(fileInput)) {
+                    return; // Exit if the file type is invalid
+                }
+
+                var formData = new FormData();
+                formData.append("file", fileInput.files[0]);
+
+                // Show loading overlay and spinner
+                $('#overlay').show(); // Show the overlay
+
+                // Send the file to the server
+                $.ajax({
+                    url: '@Url.Action("ProcessFile", "Home")', // Your action to handle file upload
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (response) {
+                        // Clear the table before populating new data
+                        dataTable.clear().draw();
+
+                        if (response.success) {
+                            // Populate the DataTable with the received data
+                            response.data.forEach(function (row) {
+                                dataTable.row.add(row).draw();
+                            });
+                            $('#logfileName').text(''); // Clear log file name on successful processing
+                        } else {
+                            // Show error message if data is not as per the template
+                            alert(response.message); // Display the error message
+                            $('#logfileName').text(response.logFileName); // Display the log file name if available
+                            if (response.data.length > 0) {
+                                response.data.forEach(function (row) {
+                                    dataTable.row.add(row).draw();
+                                });
+                            }
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error:", error); // Log the error for debugging
+                        alert("An error occurred while processing the file: " + xhr.responseText);
+                    },
+                    complete: function () {
+                        $('#overlay').hide(); // Hide the overlay after the request completes
+                    }
+                });
+            });
+
+            $('#saveButton').click(function () {
+                // Get data from DataTable
+                var data = dataTable.rows().data().toArray();
+
+                // Check if there is data to save
+                if (data.length === 0) {
+                    alert('No data to save.');
+                    return;
+                }
+
+                // Show loading overlay and spinner
+                $('#overlay').show(); // Show the overlay
+
+                $.ajax({
+                    url: '@Url.Action("SaveData", "Home")', // Your action to save data
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data), // Convert data to JSON
+                    success: function (response) {
+                        if (response.success) {
+                            $('#logfileName').text(response.logFileName); // Display the log file name if available
+                            alert(response.message); // Show success message
+                        } else {
+                            $('#logfileName').text(response.logFileName); // Display the log file name if available
+                            alert(response.message); // Show error message
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error:", error); // Log the error for debugging
+                        alert("An error occurred while saving the data: " + xhr.responseText);
+                    },
+                    complete: function () {
+                        $('#overlay').hide(); // Hide the overlay after the request completes
+                    }
+                });
+            });
+
+            $('#templateButton').click(function () {
+                alert('Template button clicked');
+                window.location.href = '@Url.Action("DownloadExcel", "Home")'; // Call the controller action
+            });
+
+            $('#clearButton').click(function () {
+                alert('Clear button clicked');
+                dataTable.clear().draw(); // Clear the DataTable
+
+                // Reset the file input
+                $('#fileInput').val(''); // Clear the file input
+            });
+
+            $('#backButton').click(function () {
+                alert('Back button clicked');
+                // Implement back functionality here
+            });
+            $(document).ready(function () {
+                $('#downloadLogButton').click(function () {
+                    // Get the log file name (you can set this dynamically based on your application logic)
+                    var logFileName = $('#logfileName').text(); // Assuming this is where the log file name is displayed
+
+                    if (!logFileName) {
+                        alert('No log file name specified.');
+                        return;
+                    }
+
+                    // Trigger the download
+                    window.location.href = '@Url.Action("DownloadLogFile", "Home")?logfileName=' + encodeURIComponent(logFileName);
+                });
+            });
+
+        });
+    </script>
+}
+========================================================================================================================================================================
