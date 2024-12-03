@@ -64,7 +64,85 @@ Stets to Follow for Forms
 
 =======================================================================================SQL Query ========================================================================
 
-========================================================================Remove Duplicate and Accociated  Records==========================================================
+=======================================================================================Alter table, rename column=============================================================
+
+-- Customers Table
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY,
+    FirstName VARCHAR(50) NOT NULL,
+    LastName VARCHAR(50) NOT NULL,
+    Email VARCHAR(100) UNIQUE,
+    Phone VARCHAR(20),
+    Address VARCHAR(255),
+    RegistrationDate DATETIME DEFAULT GETDATE()
+);
+
+-- Products Table
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY,
+    ProductName VARCHAR(100) NOT NULL,
+    Price DECIMAL(10, 2) NOT NULL,
+    StockQuantity INT CHECK (StockQuantity >= 0)
+);
+
+-- Orders Table
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY,
+    CustomerID INT,
+    OrderDate DATETIME DEFAULT GETDATE(),
+    TotalAmount DECIMAL(15, 2),
+    Status VARCHAR(20) CHECK (Status IN ('Pending', 'Shipped', 'Delivered', 'Cancelled'))
+);
+
+-- OrderDetails Table
+CREATE TABLE OrderDetails (
+    OrderDetailID INT PRIMARY KEY,
+    OrderID INT,
+    ProductID INT,
+    Quantity INT CHECK (Quantity > 0),
+    Price DECIMAL(10, 2),
+    Total DECIMAL(15, 2) AS (Quantity * Price) PERSISTED
+);
+
+-- Add Foreign Key Constraints
+ALTER TABLE Orders
+ADD CONSTRAINT FK_Orders_Customers
+FOREIGN KEY (CustomerID)
+REFERENCES Customers(CustomerID);
+
+ALTER TABLE OrderDetails
+ADD CONSTRAINT FK_OrderDetails_Orders
+FOREIGN KEY (OrderID)
+REFERENCES Orders(OrderID);
+
+ALTER TABLE OrderDetails
+ADD CONSTRAINT FK_OrderDetails_Products
+FOREIGN KEY (ProductID)
+REFERENCES Products(ProductID);
+
+
+-- Add a new column
+ALTER TABLE Employees
+ADD Birthdate DATE;
+
+-- Rename an existing column
+EXEC sp_rename 'Employees.EmployeeName', 'FullName', 'COLUMN';
+
+-- Modify the datatype of an existing column
+ALTER TABLE Employees
+ALTER COLUMN FullName VARCHAR(100);
+
+-- Add a constraint to a column
+ALTER TABLE Employees
+ADD CONSTRAINT DF_Employee_Salary DEFAULT 50000 FOR Salary;
+
+-- Drop a column
+ALTER TABLE Employees
+DROP COLUMN Birthdate;
+
+
+
+========================================================================Remove Duplicate and Accociated  Records, temp table==========================================================
 -- Step 1: Create a temporary table to hold duplicate questions
 CREATE TABLE #DuplicateQuestions (
     Id INT,
@@ -99,10 +177,13 @@ WHERE dq.rn > 1;
 -- Step 5: Drop the temporary table
 DROP TABLE #DuplicateQuestions;
 
-============================================================ System Table and Procedures======================================================
+============================================================ System Table and Procedures, System Procedure======================================================
 with (nolock)
+sp_who
 sp_who2 
-sp_tables
+sp_helptext procName
+sp_rename
+sp_tables or sp_table '%tablename%'
 SELECT * FROM sys.procedures
 SELECT * from INFORMATION_SCHEMA.COLUMNS
 SELECT name, type FROM dbo.sysobjects WHERE type IN ( 
@@ -112,7 +193,6 @@ SELECT name, type FROM dbo.sysobjects WHERE type IN (
     'TF', -- table-valued functions
 	'U' -- Table
 ) ORDER BY type, name
-
 
 ====================================================== Copy all columns from one table to another table======================================================
 
@@ -538,3 +618,762 @@ EXEC UpsertDataFromTable
 
 -- Get the result message
 SELECT @ResultMessage AS ResultMessage;
+
+================================================================================================Use of Cast======================================================
+-- 1. CAST to INT (from string)
+DECLARE @StringValue NVARCHAR(10) = '12345';
+SELECT CAST(@StringValue AS INT) AS CastToInt;  -- Converts a string to integer
+
+-- 2. CAST to VARCHAR (from integer)
+DECLARE @IntValue INT = 12345;
+SELECT CAST(@IntValue AS VARCHAR(10)) AS CastToVarchar;  -- Converts an integer to string
+
+-- 3. CAST to DECIMAL (from string)
+DECLARE @DecimalStringValue NVARCHAR(10) = '123.45';
+SELECT CAST(@DecimalStringValue AS DECIMAL(10, 2)) AS CastToDecimal;  -- Converts string to decimal
+
+-- 4. CAST to DATETIME (from string)
+DECLARE @DateString NVARCHAR(20) = '2024-12-01 12:30:00';
+SELECT CAST(@DateString AS DATETIME) AS CastToDateTime;  -- Converts string to DATETIME
+
+-- 5. CAST to DATE (from DATETIME)
+DECLARE @DateTimeValue DATETIME = '2024-12-01 12:30:00';
+SELECT CAST(@DateTimeValue AS DATE) AS CastToDate;  -- Converts DATETIME to DATE (removes time part)
+
+-- 6. CAST to VARCHAR (from DATETIME)
+DECLARE @DateTimeForString DATETIME = '2024-12-01 12:30:00';
+SELECT CAST(@DateTimeForString AS VARCHAR(50)) AS CastToVarcharFromDateTime;  -- Converts DATETIME to string
+
+-- 7. CAST to FLOAT (from integer)
+DECLARE @IntForFloat INT = 123;
+SELECT CAST(@IntForFloat AS FLOAT) AS CastToFloat;  -- Converts integer to FLOAT (decimal value)
+
+-- 8. CAST to INT (from FLOAT)
+DECLARE @FloatValue FLOAT = 123.45;
+SELECT CAST(@FloatValue AS INT) AS CastToIntFromFloat;  -- Converts FLOAT to integer (loses decimal part)
+
+-- 9. CAST to NVARCHAR (from binary data)
+DECLARE @BinaryValue VARBINARY(100) = 0x68656C6C6F;
+SELECT CAST(@BinaryValue AS NVARCHAR(50)) AS CastToNVarcharFromBinary;  -- Converts binary data to string (unicode)
+
+-- 10. CAST to CHAR (from string)
+DECLARE @StringForChar NVARCHAR(10) = 'Hello';
+SELECT CAST(@StringForChar AS CHAR(10)) AS CastToChar;  -- Converts string to fixed-length CHAR
+
+-- 11. CAST to SMALLINT (from integer)
+DECLARE @IntValueSmall INT = 32000;
+SELECT CAST(@IntValueSmall AS SMALLINT) AS CastToSmallInt;  -- Converts integer to SMALLINT (within the valid range)
+
+-- 12. CAST to MONEY (from DECIMAL)
+DECLARE @DecimalForMoney DECIMAL(18, 2) = 12345.67;
+SELECT CAST(@DecimalForMoney AS MONEY) AS CastToMoney;  -- Converts decimal to MONEY type
+
+-- 13. CAST to BIT (from integer)
+DECLARE @IntForBit INT = 1;  -- 1 or 0
+SELECT CAST(@IntForBit AS BIT) AS CastToBit;  -- Converts integer to BIT (1 or 0)
+
+-- 14. CAST to TINYINT (from integer)
+DECLARE @IntValueTiny INT = 200;
+SELECT CAST(@IntValueTiny AS TINYINT) AS CastToTinyInt;  -- Converts integer to TINYINT (within the valid range)
+
+======================================================Use of CASE, NULL checks, CONVERT, CAST, and handling of DATETIME values.======================================================
+
+CREATE PROCEDURE ManageEmployeeData
+    @EmployeeID INT,
+    @Name NVARCHAR(100),
+    @Age INT,
+    @Salary DECIMAL(18, 2),
+    @StartDate DATETIME,
+    @TerminationDate DATETIME = NULL,   -- Termination date can be NULL
+    @EmployeeStatus NVARCHAR(50) = NULL, -- Status can be NULL
+    @ResultMessage NVARCHAR(255) OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- NULL checks and setting default values if NULL
+    IF @Name IS NULL
+    BEGIN
+        SET @ResultMessage = 'Error: Employee Name is required.'
+        RETURN;
+    END
+
+    IF @Age IS NULL OR @Age <= 0
+    BEGIN
+        SET @ResultMessage = 'Error: Age must be a positive number.'
+        RETURN;
+    END
+
+    IF @Salary IS NULL OR @Salary <= 0
+    BEGIN
+        SET @ResultMessage = 'Error: Salary must be a positive number.'
+        RETURN;
+    END
+
+    -- Use CASE for logic based on employee status (active, terminated, etc.)
+    DECLARE @StatusMessage NVARCHAR(100);
+    SET @StatusMessage = 
+        CASE 
+            WHEN @EmployeeStatus = 'Active' THEN 'Employee is active.'
+            WHEN @EmployeeStatus = 'Terminated' THEN 'Employee has been terminated.'
+            WHEN @EmployeeStatus = 'OnLeave' THEN 'Employee is currently on leave.'
+            ELSE 'Employee status is unknown.'
+        END;
+
+    -- Use CAST/CONVERT for working with DATETIME fields
+    DECLARE @ConvertedStartDate DATETIME;
+    SET @ConvertedStartDate = CONVERT(DATETIME, @StartDate, 120); -- ISO format
+
+    -- Check if the employee exists based on EmployeeID
+    IF EXISTS (SELECT 1 FROM Employees WHERE EmployeeID = @EmployeeID)
+    BEGIN
+        -- If the employee exists, update the record
+        UPDATE Employees
+        SET 
+            Name = UPPER(@Name),  -- Convert Name to uppercase
+            Age = @Age,
+            Salary = @Salary,
+            StartDate = @ConvertedStartDate,
+            TerminationDate = CASE WHEN @TerminationDate IS NOT NULL THEN @TerminationDate ELSE TerminationDate END,
+            EmployeeStatus = CASE WHEN @EmployeeStatus IS NOT NULL THEN @EmployeeStatus ELSE EmployeeStatus END
+        WHERE EmployeeID = @EmployeeID;
+
+        SET @ResultMessage = 'Employee data updated successfully.';
+    END
+    ELSE
+    BEGIN
+        -- If the employee doesn't exist, insert new record
+        INSERT INTO Employees (EmployeeID, Name, Age, Salary, StartDate, TerminationDate, EmployeeStatus)
+        VALUES 
+            (@EmployeeID, 
+             UPPER(@Name),  -- Convert Name to uppercase
+             @Age, 
+             @Salary, 
+             @ConvertedStartDate,
+             @TerminationDate, 
+             @EmployeeStatus);
+
+        SET @ResultMessage = 'Employee data inserted successfully.';
+    END
+    
+    -- Return the employee status message from CASE logic
+    SELECT @StatusMessage AS EmployeeStatusMessage;
+END
+
+---------------------------------------------------------Execute the SP---------------------------------------------------------------------------------
+DECLARE @ResultMessage NVARCHAR(255);
+
+-- Insert data with an employee status
+EXEC ManageEmployeeData 
+    @EmployeeID = 1, 
+    @Name = 'Alice Johnson', 
+    @Age = 28, 
+    @Salary = 75000, 
+    @StartDate = '2023-01-15 08:00:00', 
+    @EmployeeStatus = 'Active', 
+    @ResultMessage = @ResultMessage OUTPUT;
+
+-- Get the result message
+SELECT @ResultMessage AS ResultMessage;
+
+-- Example: Updating existing employee with termination date
+EXEC ManageEmployeeData 
+    @EmployeeID = 1, 
+    @Name = 'Alice Johnson', 
+    @Age = 29, 
+    @Salary = 80000, 
+    @StartDate = '2023-01-15 08:00:00', 
+    @TerminationDate = '2024-01-01 00:00:00', 
+    @EmployeeStatus = 'Terminated', 
+    @ResultMessage = @ResultMessage OUTPUT;
+
+-- Get the result message after update
+SELECT @ResultMessage AS ResultMessage;
+
+===========================================================================Functions ===============================================================
+
+1. LEN – Returns the length of a string.
+SELECT LEN('Hello World'); -- Output: 11
+
+2. UPPER – Converts a string to uppercase.
+SELECT UPPER('hello'); -- Output: 'HELLO'
+
+3. LOWER – Converts a string to lowercase.
+SELECT LOWER('HELLO'); -- Output: 'hello'
+
+4. GETDATE – Returns the current system date and time.
+SELECT GETDATE(); -- Output: Current date and time
+
+5. DATEADD – Adds a specified time interval to a date.
+SELECT DATEADD(DAY, 5, '2024-12-01'); -- Output: '2024-12-06'
+
+6. DATEDIFF – Returns the difference between two dates.
+SELECT DATEDIFF(DAY, '2024-12-01', '2024-12-06'); -- Output: 5
+
+7. CONCAT – Concatenates two or more strings.
+SELECT CONCAT('Hello', ' ', 'World'); -- Output: 'Hello World'
+
+8. ISNULL – Replaces NULL with a specified replacement value.
+SELECT ISNULL(NULL, 'No Value'); -- Output: 'No Value'
+
+9. COALESCE – Returns the first non-NULL value in a list of expressions.
+SELECT COALESCE(NULL, NULL, 'First Non-Null'); -- Output: 'First Non-Null'
+
+10. CAST – Converts an expression to a specified data type.
+SELECT CAST('123.45' AS INT); -- Output: 123
+
+11. CONVERT – Converts an expression to a specified data type with format.
+SELECT CONVERT(DATE, '2024-12-01 12:30:00'); -- Output: '2024-12-01'
+
+12. LEFT – Returns a specified number of characters from the left of a string.
+SELECT LEFT('Hello World', 5); -- Output: 'Hello'
+
+13. RIGHT – Returns a specified number of characters from the right of a string.
+SELECT RIGHT('Hello World', 5); -- Output: 'World'
+
+14. SUBSTRING – Returns a portion of a string.
+SELECT SUBSTRING('Hello World', 7, 5); -- Output: 'World'
+
+15. ABS – Returns the absolute value of a number.
+SELECT ABS(-123); -- Output: 123
+
+16. ROUND – Rounds a number to a specified number of decimal places.
+SELECT ROUND(123.4567, 2); -- Output: 123.46
+
+17. CEILING – Returns the smallest integer greater than or equal to a number.
+SELECT CEILING(123.45); -- Output: 124
+
+18. FLOOR – Returns the largest integer less than or equal to a number.
+SELECT FLOOR(123.45); -- Output: 123
+
+19. NEWID – Returns a uniqueidentifier (GUID).
+SELECT NEWID(); -- Output: A unique GUID (e.g., '6F9619FF-8B86-D011-B42D-00C04FC964FF')
+
+20. RAND – Returns a random float value between 0 and 1.
+SELECT RAND(); -- Output: A random float value, e.g., 0.583489
+
+21. ABS – Returns the absolute value of a number.
+SELECT ABS(-7); -- Output: 7
+
+22. PI – Returns the value of Pi (3.14159265358979...).
+SELECT PI(); -- Output: 3.14159265358979
+
+23. POWER – Returns the result of a number raised to a power.
+SELECT POWER(2, 3); -- Output: 8 (2 raised to the power of 3)
+
+24. SIGN – Returns the sign of a number (1 for positive, 0 for zero, -1 for negative).
+SELECT SIGN(-5); -- Output: -1
+
+25. LEN – Returns the number of characters in a string (excluding trailing spaces).
+SELECT LEN('  Hello '); -- Output: 7
+
+26. CHARINDEX – Returns the starting position of a substring in a string.
+SELECT CHARINDEX('World', 'Hello World'); -- Output: 7
+
+27. REPLACE – Replaces all occurrences of a substring in a string with another substring.
+SELECT REPLACE('Hello World', 'World', 'SQL'); -- Output: 'Hello SQL'
+
+28. RANDOM – Generates a random number (SQL Server uses RAND).
+SELECT RAND(); -- Output: Random number between 0 and 1 (e.g., 0.2145)
+
+29. EXACT – Compares two expressions for equality (ignores case).
+SELECT EXACT('Hello', 'HELLO'); -- Output: 1 (True if exactly the same, 0 if not)
+
+30. MONTH – Returns the month part of a date.
+SELECT MONTH('2024-12-15'); -- Output: 12
+
+31. YEAR – Returns the year part of a date.
+SELECT YEAR('2024-12-15'); -- Output: 2024
+
+32. DAY – Returns the day part of a date.
+SELECT DAY('2024-12-15'); -- Output: 15
+
+33. DATENAME – Returns the specified part of a date as a string.
+SELECT DATENAME(MONTH, '2024-12-15'); -- Output: 'December'
+
+34. DATEPART – Returns the specified part of a date as an integer.
+SELECT DATEPART(MONTH, '2024-12-15'); -- Output: 12
+
+35. CURRENT_TIMESTAMP – Returns the current date and time.
+SELECT CURRENT_TIMESTAMP; -- Output: '2024-12-01 12:00:00.000' (or current date/time)
+
+===========================================================================Validations ===============================================================
+
+CREATE PROCEDURE InsertEmployeeData
+    @Name NVARCHAR(100),
+    @Age INT,
+    @DOB DATETIME,
+    @Gender NVARCHAR(10),
+    @Phone NVARCHAR(10),
+    @Email NVARCHAR(100),
+    @Address NVARCHAR(200),
+    @Profession NVARCHAR(100),
+    @Zip NVARCHAR(5)
+AS
+BEGIN
+    -- Validate Name
+    IF @Name IS NULL OR LEN(@Name) = 0 OR @Name LIKE '%[^a-zA-Z ]%' 
+    BEGIN
+        PRINT 'Invalid Name: It should only contain letters and spaces.';
+        RETURN;
+    END
+
+    -- Validate Age
+    IF @Age IS NULL OR @Age < 18 OR @Age > 100 OR @Age NOT LIKE '%[0-9]%' 
+    BEGIN
+        PRINT 'Invalid Age: It should be a number between 18 and 100.';
+        RETURN;
+    END
+
+    -- Validate Date of Birth
+    IF ISDATE(@DOB) = 0 OR @DOB > GETDATE() 
+    BEGIN
+        PRINT 'Invalid DOB: Date of Birth should be a valid date and not in the future.';
+        RETURN;
+    END
+
+    -- Validate Gender
+    IF @Gender NOT IN ('Male', 'Female', 'Other') 
+    BEGIN
+        PRINT 'Invalid Gender: It should be one of "Male", "Female", or "Other".';
+        RETURN;
+    END
+
+    -- Validate Phone Number
+    IF @Phone IS NULL OR @Phone LIKE '%[^0-9]%' OR LEN(@Phone) != 10
+    BEGIN
+        PRINT 'Invalid Phone Number: It should be exactly 10 digits.';
+        RETURN;
+    END
+
+    -- Validate Email
+    IF @Email IS NULL OR @Email NOT LIKE '%@%.%' OR @Email LIKE '%[^a-zA-Z0-9@._-]%' 
+    BEGIN
+        PRINT 'Invalid Email: It should follow the format "username@domain.com".';
+        RETURN;
+    END
+
+    -- Validate Address
+    IF @Address IS NULL OR LEN(@Address) = 0 OR @Address LIKE '%[^a-zA-Z0-9 ,.-]%' 
+    BEGIN
+        PRINT 'Invalid Address: It should not be empty and contain only valid characters.';
+        RETURN;
+    END
+
+    -- Validate Profession
+    IF @Profession IS NULL OR LEN(@Profession) = 0 OR @Profession LIKE '%[^a-zA-Z ]%' 
+    BEGIN
+        PRINT 'Invalid Profession: It should contain only letters and spaces.';
+        RETURN;
+    END
+
+    -- Validate Zip Code
+    IF @Zip IS NULL OR @Zip LIKE '%[^0-9]%' OR LEN(@Zip) != 5
+    BEGIN
+        PRINT 'Invalid Zip Code: It should be exactly 5 digits.';
+        RETURN;
+    END
+
+    -- If all validations pass, Insert Data into Employees Table
+    INSERT INTO Employees (Name, Age, DOB, Gender, Phone, Email, Address, Profession, Zip)
+    VALUES (@Name, @Age, @DOB, @Gender, @Phone, @Email, @Address, @Profession, @Zip);
+    
+    PRINT 'Employee data inserted successfully.';
+END
+
+===========================================================================Dashboard Data ===============================================================
+ --total sales, total products sold, and total sales per employee, filtered by specific dates
+ 
+CREATE PROCEDURE GetDashboardData
+    @StartDate DATE, -- Input Parameter: start date for data filtering
+    @EndDate DATE, -- Input Parameter: end date for data filtering
+    @EmployeeId INT, -- Input Parameter: employee ID filter
+    @TotalSales DECIMAL OUTPUT, -- Output Parameter: Total Sales value
+    @TotalProductsSold INT OUTPUT -- Output Parameter: Total Products Sold count
+AS
+BEGIN
+    -- Declaring Variables
+    DECLARE @ErrorMessage NVARCHAR(4000);
+    
+    BEGIN TRY
+        -- Common Table Expressions (CTEs)
+        WITH SalesCTE AS (
+            SELECT
+                s.SaleDate,
+                s.EmployeeId,
+                s.ProductId,
+                s.QuantitySold,
+                p.ProductName,
+                CAST(s.Amount AS DECIMAL(10, 2)) AS TotalSaleAmount
+            FROM
+                Sales s
+            JOIN Products p ON s.ProductId = p.ProductId
+            WHERE
+                s.SaleDate BETWEEN @StartDate AND @EndDate
+                AND (@EmployeeId IS NULL OR s.EmployeeId = @EmployeeId) -- Optional Employee filter
+        ),
+        EmployeeSales AS (
+            SELECT
+                e.EmployeeId,
+                e.EmployeeName,
+                SUM(sc.TotalSaleAmount) AS TotalSalesPerEmployee
+            FROM
+                SalesCTE sc
+            JOIN Employees e ON sc.EmployeeId = e.EmployeeId
+            GROUP BY
+                e.EmployeeId, e.EmployeeName
+        )
+        
+        -- Main Query to Aggregate Dashboard Data
+        SELECT 
+            es.EmployeeId,
+            es.EmployeeName,
+            SUM(sc.QuantitySold) AS TotalProductsSold,
+            SUM(sc.TotalSaleAmount) AS TotalSales,
+            CASE 
+                WHEN SUM(sc.TotalSaleAmount) >= 10000 THEN 'High Performer'
+                WHEN SUM(sc.TotalSaleAmount) >= 5000 THEN 'Moderate Performer'
+                ELSE 'Low Performer'
+            END AS SalesPerformance
+        INTO #DashboardData -- Temporary Table to hold intermediate results
+        FROM 
+            SalesCTE sc
+        JOIN EmployeeSales es ON sc.EmployeeId = es.EmployeeId
+        GROUP BY 
+            es.EmployeeId, es.EmployeeName;
+
+        -- Returning Total Sales and Total Products Sold as Output Parameters
+        SELECT @TotalSales = SUM(TotalSales), @TotalProductsSold = SUM(TotalProductsSold) FROM #DashboardData;
+
+        -- Final Dashboard Data Output
+        SELECT 
+            EmployeeId,
+            EmployeeName,
+            TotalProductsSold,
+            TotalSales,
+            SalesPerformance
+        FROM #DashboardData;
+
+        -- Cleanup Temporary Table
+        DROP TABLE #DashboardData;
+        
+    END TRY
+    BEGIN CATCH
+        -- Error Handling with Try-Catch
+        SET @ErrorMessage = ERROR_MESSAGE();
+        PRINT 'Error occurred: ' + @ErrorMessage;
+        ROLLBACK; -- If any error occurs, rollback the transaction
+    END CATCH
+END;
+
+
+--------------------------------------------------------------------------------Execute SP----------------------------------------------
+DECLARE @TotalSales DECIMAL(10, 2),
+        @TotalProductsSold INT;
+
+EXEC GetDashboardData
+    @StartDate = '2024-01-01',
+    @EndDate = '2024-12-31',
+    @EmployeeId = NULL,  -- NULL for all employees or specify an employee ID
+    @TotalSales = @TotalSales OUTPUT,
+    @TotalProductsSold = @TotalProductsSold OUTPUT;
+
+-- Output results
+PRINT 'Total Sales: ' + CAST(@TotalSales AS VARCHAR(20));
+PRINT 'Total Products Sold: ' + CAST(@TotalProductsSold AS VARCHAR(20));
+
+======================================================Window Functions (ROW_NUMBER(), PARTITION BY, RANK()==========================================================
+------------------------------------------------------------------------------
+1. Use ROW_NUMBER() to assign a unique row number to each record
+------------------------------------------------------------------------------
+-> Scenario: You have a list of employees, and you want to assign a sequential row number to each employee, ordered by their hire date, to display them in a specific order.
+-> Purpose: This generates a unique number for each employee, ordered by the HireDate in descending order (most recent employee first).
+
+ex: ROW_NUMBER() OVER (ORDER BY HireDate DESC) AS RowNum
+
+Employee Listing: Assign a row number to each employee in the company ordered by their joining date.
+ex: ROW_NUMBER() OVER (ORDER BY JoinDate ASC) AS RowNum
+
+Product Ranking: Number products based on their sales, showing the top-selling products first.
+ex: ROW_NUMBER() OVER (ORDER BY Sales DESC) AS RowNum
+
+Pagination in Web Applications: When displaying large datasets, assign a row number to divide data into pages.
+ex: ROW_NUMBER() OVER (ORDER BY OrderDate DESC) AS RowNum
+
+Customer Segmentation: Assign numbers to customers based on their purchase history to categorize them into segments (e.g., top 10 customers).
+ex: ROW_NUMBER() OVER (ORDER BY TotalPurchases DESC) AS RowNum
+
+Task Assignment: For a project management system, assign row numbers to tasks ordered by priority level.
+ex: ROW_NUMBER() OVER (ORDER BY Priority DESC) AS RowNum
+------------------------------------------------------------------------------
+2. Use RANK() to rank records based on a calculated value
+------------------------------------------------------------------------------
+-> Scenario: You want to rank employees based on their total sales amount, where employees with the same total sales will receive the same rank, and the next rank will be skipped.
+-> Purpose: This ranks employees based on their SalesAmount. If two employees have the same sales amount, they will receive the same rank, and the next rank will be skipped (e.g., two employees ranked 1, the next rank will be 3).
+
+ex: RANK() OVER (ORDER BY SUM(SalesAmount) DESC) AS SalesRank
+
+Employee Performance: Rank employees based on their total sales for a month. Employees with the same sales get the same rank, and the next rank will be skipped.
+ex: RANK() OVER (ORDER BY SalesAmount DESC) AS Rank
+
+Sports Tournament: Rank athletes based on their performance (e.g., running time, score) in a race.
+ex: RANK() OVER (ORDER BY PerformanceScore DESC) AS AthleteRank
+
+University Exam Results: Rank students based on their exam scores. If two students have the same score, they get the same rank, and the next rank will be skipped.
+ex: RANK() OVER (ORDER BY Score DESC) AS ExamRank
+
+Top Selling Products: Rank products based on the total number of units sold. Products with the same number of units sold will have the same rank.
+ex: RANK() OVER (ORDER BY UnitsSold DESC) AS ProductRank
+
+Customer Loyalty Program: Rank customers based on their loyalty points. If two customers have the same points, they will share the same rank.
+ex: RANK() OVER (ORDER BY LoyaltyPoints DESC) AS LoyaltyRank
+------------------------------------------------------------------------------
+3. Use PARTITION BY to reset rankings per group
+------------------------------------------------------------------------------
+-> Scenario: You have a list of employees in different departments, and you want to rank employees within each department based on their sales. Each department's ranking should be calculated independently.
+-> Purpose: This ranks employees within each department (DepartmentId), resetting the rank for each department, based on their total sales amount. Employees in the same department with identical sales will share the same rank.
+
+ex: RANK() OVER (PARTITION BY DepartmentId ORDER BY SUM(SalesAmount) DESC) AS DepartmentSalesRank
+
+Departmental Employee Ranking: Rank employees within each department based on their individual sales.
+ex: RANK() OVER (PARTITION BY DepartmentId ORDER BY SalesAmount DESC) AS DeptRank
+
+Product Ranking by Category: Rank products within each category based on total sales.
+ex: RANK() OVER (PARTITION BY CategoryId ORDER BY Sales DESC) AS CategoryRank
+
+Regional Sales Performance: Rank sales representatives within each region based on total sales in that region.
+ex: RANK() OVER (PARTITION BY RegionId ORDER BY SalesAmount DESC) AS RegionalRank
+
+Student Performance by Class: Rank students within each class based on their exam scores.
+ex: RANK() OVER (PARTITION BY ClassId ORDER BY ExamScore DESC) AS ClassRank
+
+Team Leaderboard: In a gaming or sports league, rank teams based on their scores but reset the ranking per group (team or division).
+ex: RANK() OVER (PARTITION BY TeamGroup ORDER BY Score DESC) AS TeamRank
+------------------------------------------------------------------------------
+4. Use OVER() to calculate running totals or cumulative values
+------------------------------------------------------------------------------
+-> Scenario: You want to display a running total of sales per day, ordered by date, so you can see how sales accumulate over time.
+-> Purpose: This calculates a cumulative sum (RunningTotal) of SalesAmount, starting from the first row in the result set (indicated by UNBOUNDED PRECEDING) and accumulating values as it moves down the rows, ordered by SaleDate. The running total updates as each new row (day) is added.
+
+ex: SUM(SalesAmount) OVER (ORDER BY SaleDate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS RunningTotal
+
+Running Total of Sales: Calculate the cumulative sales amount for each day.
+ex: SUM(SalesAmount) OVER (ORDER BY SaleDate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS RunningTotal
+
+Employee Salary Growth: Calculate the cumulative salary increase for each employee over time.
+ex: SUM(SalaryIncrease) OVER (PARTITION BY EmployeeId ORDER BY DateOfIncrease ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS CumulativeSalaryIncrease
+
+Employee Tenure: Calculate the number of days an employee has worked, cumulatively, based on their join date.
+ex: DATEDIFF(DAY, JoinDate, GETDATE()) OVER (PARTITION BY EmployeeId) AS EmployeeTenure
+
+Product Stock Availability: Calculate the running stock availability for products as stock is added and sold.
+ex: SUM(StockAdded - StockSold) OVER (PARTITION BY ProductId ORDER BY Date) AS CumulativeStockAvailable
+
+Customer Lifetime Value (CLV): Calculate the running total of customer lifetime value based on their purchases.
+ex: SUM(PurchaseAmount) OVER (PARTITION BY CustomerId ORDER BY PurchaseDate ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW) AS CLV
+
+
+=================================================Dashboard Data using Window Functions (ROW_NUMBER(), PARTITION BY, RANK()==========================================================
+
+-- Use ROW_NUMBER() to assign a unique row number to each sales transaction.
+---Use RANK() to rank employees based on their total sales.
+-- Use PARTITION BY to reset rankings per employee or product category.
+-- Use OVER() to calculate running totals or cumulative sales.
+
+CREATE PROCEDURE GetDashboardData
+    @StartDate DATE, -- Input Parameter: start date for data filtering
+    @EndDate DATE, -- Input Parameter: end date for data filtering
+    @EmployeeId INT, -- Input Parameter: employee ID filter (optional)
+    @TotalSales DECIMAL OUTPUT, -- Output Parameter: Total Sales value
+    @TotalProductsSold INT OUTPUT -- Output Parameter: Total Products Sold count
+AS
+BEGIN
+    -- Declaring Variables
+    DECLARE @ErrorMessage NVARCHAR(4000);
+
+    BEGIN TRY
+        -- Common Table Expressions (CTEs)
+        WITH SalesCTE AS (
+            SELECT
+                s.SaleDate,
+                s.EmployeeId,
+                s.ProductId,
+                s.QuantitySold,
+                p.ProductName,
+                CAST(s.Amount AS DECIMAL(10, 2)) AS TotalSaleAmount,
+                ROW_NUMBER() OVER (PARTITION BY s.EmployeeId ORDER BY s.SaleDate DESC) AS RowNum, -- Row Number for each employee’s sales
+                SUM(s.Amount) OVER (PARTITION BY s.EmployeeId) AS TotalSalesByEmployee, -- Cumulative sales per employee
+                RANK() OVER (ORDER BY SUM(s.Amount) DESC) AS SalesRank, -- Rank employees based on total sales
+                DENSE_RANK() OVER (PARTITION BY p.ProductId ORDER BY s.SaleDate DESC) AS ProductRank -- Rank products based on most recent sales
+            FROM
+                Sales s
+            JOIN Products p ON s.ProductId = p.ProductId
+            WHERE
+                s.SaleDate BETWEEN @StartDate AND @EndDate
+                AND (@EmployeeId IS NULL OR s.EmployeeId = @EmployeeId) -- Optional Employee filter
+        ),
+        EmployeeSales AS (
+            SELECT
+                e.EmployeeId,
+                e.EmployeeName,
+                SUM(sc.TotalSaleAmount) AS TotalSalesPerEmployee,
+                MAX(sc.SalesRank) AS MaxSalesRank
+            FROM
+                SalesCTE sc
+            JOIN Employees e ON sc.EmployeeId = e.EmployeeId
+            GROUP BY
+                e.EmployeeId, e.EmployeeName
+        )
+
+        -- Main Query to Aggregate Dashboard Data
+        SELECT 
+            es.EmployeeId,
+            es.EmployeeName,
+            SUM(sc.QuantitySold) AS TotalProductsSold,
+            SUM(sc.TotalSaleAmount) AS TotalSales,
+            es.MaxSalesRank,
+            CASE 
+                WHEN SUM(sc.TotalSaleAmount) >= 10000 THEN 'High Performer'
+                WHEN SUM(sc.TotalSaleAmount) >= 5000 THEN 'Moderate Performer'
+                ELSE 'Low Performer'
+            END AS SalesPerformance,
+            ROW_NUMBER() OVER (ORDER BY SUM(sc.TotalSaleAmount) DESC) AS OverallRank -- Rank all employees based on total sales
+        INTO #DashboardData -- Temporary Table to hold intermediate results
+        FROM 
+            SalesCTE sc
+        JOIN EmployeeSales es ON sc.EmployeeId = es.EmployeeId
+        GROUP BY 
+            es.EmployeeId, es.EmployeeName, es.MaxSalesRank;
+
+        -- Returning Total Sales and Total Products Sold as Output Parameters
+        SELECT @TotalSales = SUM(TotalSales), @TotalProductsSold = SUM(TotalProductsSold) FROM #DashboardData;
+
+        -- Final Dashboard Data Output
+        SELECT 
+            EmployeeId,
+            EmployeeName,
+            TotalProductsSold,
+            TotalSales,
+            SalesPerformance,
+            MaxSalesRank,
+            OverallRank
+        FROM #DashboardData;
+
+        -- Cleanup Temporary Table
+        DROP TABLE #DashboardData;
+
+    END TRY
+    BEGIN CATCH
+        -- Error Handling with Try-Catch
+		-- SELECT ERROR_NUMBER() AS ErrorNumber;
+        SET @ErrorMessage = ERROR_MESSAGE();
+        PRINT 'Error occurred: ' + @ErrorMessage;
+		
+     
+        ROLLBACK; -- If any error occurs, rollback the transaction
+    END CATCH
+END;
+
+--------------------------------------------------------------------------------Execute SP-----------------------------------------------------------
+
+DECLARE @TotalSales DECIMAL(10, 2),
+        @TotalProductsSold INT;
+
+EXEC GetDashboardData
+    @StartDate = '2024-01-01',
+    @EndDate = '2024-12-31',
+    @EmployeeId = NULL,  -- NULL for all employees or specify an employee ID
+    @TotalSales = @TotalSales OUTPUT,
+    @TotalProductsSold = @TotalProductsSold OUTPUT;
+
+-- Output results
+PRINT 'Total Sales: ' + CAST(@TotalSales AS VARCHAR(20));
+PRINT 'Total Products Sold: ' + CAST(@TotalProductsSold AS VARCHAR(20));
+
+============================================================================Transaction==========================================================
+
+BEGIN TRY
+    -- Start the transaction
+    BEGIN TRANSACTION;
+    
+    -- Perform the insert operation
+    INSERT INTO Employees (EmployeeID, EmployeeName, HireDate, Department)
+    VALUES (1, 'John Doe', '2024-12-02', 'HR');
+    
+    -- Another insert operation
+    INSERT INTO Employees (EmployeeID, EmployeeName, HireDate, Department)
+    VALUES (2, 'Jane Smith', '2024-12-03', 'Finance');
+    
+    -- If no error occurred, commit the transaction
+    COMMIT TRANSACTION;
+    
+    PRINT 'Transaction Completed Successfully';
+END TRY
+BEGIN CATCH
+    -- If an error occurs, rollback the transaction
+    ROLLBACK TRANSACTION;
+    
+    -- Display error information
+    PRINT 'Error Message: ' + ERROR_MESSAGE();
+END CATCH
+
+============================================================================ Cursor ==========================================================
+DECLARE @EmployeeID INT;
+DECLARE @EmployeeName VARCHAR(100);
+DECLARE @Salary DECIMAL(10, 2);
+
+-- Declare the cursor
+DECLARE employee_cursor CURSOR FOR
+    SELECT EmployeeID, EmployeeName, Salary
+    FROM Employees
+    WHERE Department = 'HR';
+
+-- Open the cursor
+OPEN employee_cursor;
+
+-- Fetch the first row from the cursor
+FETCH NEXT FROM employee_cursor INTO @EmployeeID, @EmployeeName, @Salary;
+
+-- Loop through all the rows
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    -- Process the current row (e.g., apply a raise to the salary)
+    SET @Salary = @Salary * 1.1;  -- Increase salary by 10%
+
+    -- Update the salary for the employee
+    UPDATE Employees
+    SET Salary = @Salary
+    WHERE EmployeeID = @EmployeeID;
+
+    -- Fetch the next row
+    FETCH NEXT FROM employee_cursor INTO @EmployeeID, @EmployeeName, @Salary;
+END
+
+-- Close the cursor
+CLOSE employee_cursor;
+
+-- Deallocate the cursor
+DEALLOCATE employee_cursor;
+
+============================================================================ Update with Join, Sub Query, Case ==========================================================
+
+-- Update Salary using a Subquery, Join, Static Value, and CASE
+UPDATE E
+SET 
+    -- Adding bonus from a subquery (Employee's BonusAmount from the Bonuses table)
+    E.Salary = E.Salary + 
+                (SELECT BonusAmount 
+                 FROM Bonuses B 
+                 WHERE B.EmployeeID = E.EmployeeID),
+
+    -- Adding a static value (Flat increase for employees in the HR department)
+    E.Salary = E.Salary + 
+                CASE 
+                    WHEN E.Department = 'HR' THEN 1000 -- Add 1000 to HR employees' salary
+                    WHEN E.Department = 'Finance' THEN 1500 -- Add 1500 to Finance employees' salary
+                    ELSE 500 -- Add 500 for other departments
+                END
+
+FROM Employees E
+JOIN Bonuses B ON E.EmployeeID = B.EmployeeID
+WHERE E.Department IN ('HR', 'Finance'); -- Only update employees in HR or Finance
