@@ -1,5 +1,5 @@
 ===========================================================================Command/Shortcut===========================================================================
-
+code.cmd .							-- Opens VS code editor (type code.cmd .) in address bar of any angular project folder
 msconfig							-- Opens the System Configuration tool for managing startup programs, services, and boot options.
 temp								-- Opens the Temporary Files folder for the current user.
 %temp%								-- Opens the Temp folder where temporary files are stored.
@@ -94,30 +94,8 @@ git push --tags – Push tags to remote
 git clone <URL> – Clone a repository
 ===========================================================================Git End------------------------------------------------------------------------------
 
-Angular Command
-Node install from 
-https://nodejs.org/en/download/prebuilt-installer
-npm install -g npm 
-npm -v
-
-npm i @angular/cli
-npm i @angular/cli@16.2.1 or npm i @angular/cli@16
-ng version
-node --version or node -v
-
-ng serve
-ng build
-
-
-
-
-Stets to Follow for Forms
-1) 
-
-
-
-
 =======================================================================================SQL Query ========================================================================
+https://techtfq.com/blog/learn-how-to-write-sql-queries-practice-complex-sql-queries
 =======================================================================================SQL Search ========================================================================
 
 % represents any sequence of characters.
@@ -1677,7 +1655,53 @@ FROM RankedCustomers
 WHERE Rank > 10 AND Rank <= 20  -- Pagination: Show customers ranked between 11 and 20
 ORDER BY Rank;
 
+----------------------------------------------------------------------------------------------------------------------------------
 
+select e.EmployeeId, (e.TitleOfCourtesy + ' ' + e.FirstName + ' ' + e.LastName) as FullName, 
+e.Title, e.ReportsTo ,ee.FirstName as manager,FORMAT (e.BirthDate, 'yyyy-MM-dd') as BirthDate , FORMAT (e.HireDate, 'dd-MM-yyyy') as HireDate, e.Address, e.City, e.Country, (DATEDIFF(year, e.BirthDate,GETDATE())) as age from 
+Employees e
+ left join Employees ee
+on e.ReportsTo= ee.EmployeeID
+
+--number of employees working in each department in the company
+select Department, count(*) as TotalEmployee
+from employees
+group by Department
+
+--total salary in each department of the organization
+
+select Department, count(*) as TotalEmployee, sum(Salary) as TotalDepartmentSalary
+from employees
+group by department
+
+-- the highest salary in each department in the organization.
+
+select Department, count(*) as TotalEmployee, sum(salary) as TotalDepartmentSalary, max(salary) as HighestSalary
+from employees
+group by department
+
+--number of employees working in each Gender per department
+
+select Department, Gender, count(*) as TotalEmployee, sum(salary) as TotalDepartmentSalary, max(salary) as HighestSalary 
+from employees
+group by department, gender
+
+--  retrieving total salaries by the city.
+
+select city, sum(salary) as TotalSalary
+from employees
+group by city
+
+--retrieving total salaries by city and by gender.
+select City, Gender, sum(salary) as TotalSalary
+from employees 
+group by city, gender
+
+--retrieving total salaries and the total number of employees by City, and by gender.
+
+select City, count(*) as TotalEmployees, gender, sum(Salary) as TotalSalary
+from employees
+group by city, gender
 ==============================================================================================LINQ Group BY ================================================================
 
 public class Product
@@ -1891,6 +1915,53 @@ public class Program
         foreach (var dept in unionAll) Console.WriteLine(dept);
     }
 }
+====================================================================LInq paging=================================================================
+public class Product
+{
+    public int ProductId { get; set; }
+    public string Name { get; set; }
+    public decimal Price { get; set; }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        var products = new List<Product>
+        {
+            new Product { ProductId = 1, Name = "Product1", Price = 10 },
+            new Product { ProductId = 2, Name = "Product2", Price = 20 },
+            new Product { ProductId = 3, Name = "Product3", Price = 30 },
+            new Product { ProductId = 4, Name = "Product4", Price = 40 },
+            new Product { ProductId = 5, Name = "Product5", Price = 50 },
+            new Product { ProductId = 6, Name = "Product6", Price = 60 },
+            new Product { ProductId = 7, Name = "Product7", Price = 70 },
+            new Product { ProductId = 8, Name = "Product8", Price = 80 },
+            new Product { ProductId = 9, Name = "Product9", Price = 90 },
+            new Product { ProductId = 10, Name = "Product10", Price = 100 },
+            new Product { ProductId = 11, Name = "Product11", Price = 110 },
+            new Product { ProductId = 12, Name = "Product12", Price = 120 },
+        };
+
+        // Pagination
+        int pageSize = 5;  // Number of items per page
+        int pageNumber = 3;  // Page number you want to retrieve
+
+        var pageOfProducts = products
+            .Skip((pageNumber - 1) * pageSize) // Skip the previous pages
+            .Take(pageSize) // Take the next page size items
+            .ToList();
+
+        // Output the result
+        Console.WriteLine($"Page {pageNumber} of Products:");
+        foreach (var product in pageOfProducts)
+        {
+            Console.WriteLine($"{product.ProductId}: {product.Name} - ${product.Price}");
+        }
+    }
+}
+
+
 ====================================================================Class Relations=================================================================
 ----------------------------------------------// One-to-One relationship-------------------------------------------
 public class Person
@@ -2941,6 +3012,8 @@ p {
     color: red !important;
 }
 ==============================================================================Jquery AJAX====================================================
+https://github.com/voidChetan/jQuery
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -3779,6 +3852,94 @@ $(document).ready(function() {
 </body>
 </html>
 =========================================================================MVC==========================================================================
+
+using System;
+using System.Web;
+using System.Web.Mvc;
+
+namespace MvcApplication.Controllers
+{
+    public class HomeController : Controller
+    {
+        // Action to handle the form submission
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        // Action to handle setting TempData, ViewData, Session, and Cookies
+        [HttpPost]
+        public ActionResult SubmitForm(string userName)
+        {
+            // 1. Set TempData (for message after redirect)
+            TempData["Message"] = "Your form was successfully submitted!";
+
+            // 2. Set ViewData (for passing data to view)
+            ViewData["UserNameViewData"] = userName;
+
+            // 3. Set Session (to store user data across requests)
+            Session["UserName"] = userName;
+
+            // 4. Set Cookie (to store user data on the client-side)
+            HttpCookie userCookie = new HttpCookie("UserInfo");
+            userCookie["UserName"] = userName;
+            userCookie.Expires = DateTime.Now.AddMinutes(30); // Cookie expires in 30 minutes
+            Response.Cookies.Add(userCookie);
+
+            return RedirectToAction("DisplayData");
+        }
+
+        // Action to display the data after the form submission
+        public ActionResult DisplayData()
+        {
+            // 5. Retrieve TempData message
+            ViewBag.Message = TempData["Message"];
+
+            // 6. Retrieve ViewData
+            string userNameFromViewData = ViewData["UserNameViewData"] as string;
+
+            // 7. Retrieve Session data
+            string userNameFromSession = Session["UserName"] as string;
+
+            // 8. Retrieve Cookie data
+            string userNameFromCookie = Request.Cookies["UserInfo"]?["UserName"];
+
+            // Passing all data to the view
+            ViewBag.UserNameFromViewData = userNameFromViewData;
+            ViewBag.UserNameFromSession = userNameFromSession;
+            ViewBag.UserNameFromCookie = userNameFromCookie;
+
+            return View();
+        }
+    }
+}
+----------------------------------------------------------------------------------------------------------------
+@{
+    ViewBag.Title = "Home Page";
+}
+
+<h2>Welcome to the MVC Example</h2>
+
+<form action="@Url.Action("SubmitForm", "Home")" method="post">
+    <label for="userName">Enter your Name:</label>
+    <input type="text" id="userName" name="userName" required />
+    <button type="submit">Submit</button>
+</form>
+---------------------------------------------------------------------------------------------------------------
+@{
+    ViewBag.Title = "Data Display";
+}
+
+<h2>Data Display</h2>
+
+<p><strong>Message from TempData:</strong> @ViewBag.Message</p>
+<p><strong>Data from ViewData:</strong> @ViewBag.UserNameFromViewData</p>
+<p><strong>Data from Session:</strong> @ViewBag.UserNameFromSession</p>
+<p><strong>Data from Cookies:</strong> @ViewBag.UserNameFromCookie</p>
+
+
+==================================================================================MVC From==============================================================
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -4060,6 +4221,244 @@ namespace YourNamespace.Controllers
         }
     }
 }
+
+======================================================================Angular =========================================================
+
+
+Angular Command
+Node install from 
+https://nodejs.org/en/download/prebuilt-installer
+npm install -g npm 
+npm -v
+
+npm i @angular/cli
+npm i @angular/cli@16.2.1 or npm i @angular/cli@16
+ng version
+node --version or node -v
+
+ng serve
+ng build
+
+(to run someone's project code. this will auto install all dependency)
+npm install
+ng update @angular/cli @angular/core     (to update your angular version)
+
+
+https://voidchetan.github.io/interview_question_app_angular_17/home
+https://miniprojectideas.com/logicalScenarios.html#
+https://github.com/voidChetan/AngularLogicalTopics
+-----------------------------------------------------------------------------If condition----------------------------------------------------------------
+isVisible: boolean = true;
+<h1 *ngIf="isVisible"> Hii</h1>
+
+isHide: boolean = false;
+<div class="row" *ngIf="isHide">
+
+<div class="col-3" *ngFor="let item of status">
+    <div class="card card-bg">
+      <div class="card-header border-0 py-1">
+        {{item.status}} <span *ngIf="item.name!== '' "> {{item.name}}</span> 
+      </div>
+
+isDivVisiable() {
+    return this.isHide;
+  }
+<div class="row" *ngIf="isDivVisiable()"> </div>
+-----------------------------------------------------------------------------For Loop----------------------------------------------------------------
+cityList: string [] = ['Pune', 'Nagpur', 'Mumbai', 'Thane'];
+<p *ngFor="let city of cityList"> {{city }}</p>
+
+items: any[] = [
+    { id: 1, name: 'Item 1' },
+    { id: 2, name: 'Item 2' },
+    { id: 3, name: 'Item 3' }
+  ];
+  trackByFn(index: number, item: any): number {
+    return item.id; // or any unique identifier in your data
+  }
+Template  
+<div *ngFor="let item of items; trackBy: trackByFn">
+  {{ item.id }} - {{ item.name }}
+</div>
+-------------------------------------------------------------------------attribute-----------------------------------------------------------------------
+myStyle = { 'color':'red', 'width':'200px'};
+myHeight: number ='500px';
+<p [ngStyle]="myStyle "> </p> => way 1
+<div [ngStyle]="{'height':myHeight }">  </div> => way 2
+------------------------------------------------------------------attribute----------------------------------------------------------------------------
+myClass: string = "primary";
+num1: 12; num2 =12;
+<p [ngClass]="myClass">  </p> - way 1
+<span [ngClass]="num1 == num2 ? 'text-primary' : 'text-danger' ">  </span> - if we need ocnditional class
+<div [ngClass]="{'class1':condition1, 'class2': num1==num2,'class3': condition2}">  </div> - if need multple class based on multple condition
+------------------------------------------------------------------view child--------------------------------------------------------------------------
+ViewChild ? If we want to access DOM element reference in .ts file like if we need innerHtml of any element. So that is possible using viewchild
+
+<p #title> Hello World </p>
+@ViewChild('title') private elTitle : ElementRef;
+this.elTitle.nativeElement.style.color = 'red'; - so here we can do all manipulation as we do in javascript.
+
+------------------------------------------------------------ngModel (binding)-----------------------------------------------------------
+selectedTopic: number = 0;
+<input type="text" [(ngModel)]="selectedTopic" />
+
+<tr *ngFor="let cust of customerList; let sr= index"> 
+      <td> 
+             <input type="text" [(ngModel)]="cust.name"/> 
+      </td>
+</tr>
+
+-------------------------------------------------------------Routes Click--------------------------------------------------------
+ import { Router } from '@angular/router';
+ constructor(private router: Router) {}
+  navigate() {
+   this.router.navigateByUrl('admin');
+  }
+  
+  <a class="dropdown-item" routerLink="admin">admin</a>
+   <a routerLink="/todosList" >List of todos</a>
+-------------------------------------------------------------------Routes query String-------------------------------------------------------------------
+constructor(route: ActivatedRoute) {
+    const id: Observable<string> = route.params.pipe(map(p => p.id));
+    const url: Observable<string> = route.url.pipe(map(segments => segments.join('')));
+    // route.data includes both `data` and `resolve`
+    const user = route.data.pipe(map(d => d.user));
+	
+	//or
+	  this.activeroute.params.subscribe(param=> {
+         console.log(param.studentId);
+     })	
+  }
+------------------------------------------------------------------Routes--------------------------------------------------------
+const appRoutes: Routes = [ 
+  {
+    path: 'todo/:id',   - router with parameter 
+     component: TodoDetailComponent 
+  },
+  {
+    path: 'todos', -route with data
+    component: TodosListComponent, data: { title: 'Todos List' }
+  },
+  { path: '', - empty route
+    redirectTo: '/todos', pathMatch: 'full'
+  },
+  { path: '**', -if router didnt find any router then this will execute also called Wildcard route
+    component: PageNotFoundComponent
+   },
+	{
+      path: 'login',
+      component: LoginComponent,
+      canActivate: [authGuard], - guard we can add
+      title: 'Login-Page' - this is tab name 
+    }
+	, { path: 'a', loadChildren: () => import('./modulea/modulea.module').then(m => m.ModuleaModule) },
+];
+---------------------------------------------------------Component Communication, Parent to child, child to parent------------------------------------------------------
+import { Component, ViewChild, Input, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent {
+  @ViewChild('message') messageElement: any;  // Using @ViewChild to reference a DOM element
+
+  @Input() parentMessage: string = 'Hello from Parent'; // @Input to receive data from parent
+  @Output() childEvent = new EventEmitter<string>(); // @Output to emit events to parent
+
+  selectedValue: string = 'option1';  // For ngSwitch demonstration
+  message: string = '';  // Variable to store input field message
+
+  // Method to emit the event from child to parent
+  emitEvent() {
+    this.childEvent.emit('Message from child component');
+  }
+
+  changeMessage() {
+    this.message = this.messageElement.nativeElement.value;
+  }
+}
+
+app.component.html:
+
+<div style="text-align:center;">
+  <h1>
+    Angular Example: ng-template, @ViewChild, @Input, @Output, EventEmitter, ngSwitch
+  </h1>
+
+  <!-- ng-template Example -->
+  <ng-template #messageTemplate>
+    <p>This is a message from ng-template!</p>
+  </ng-template>
+
+  <!-- Conditionally display the ng-template -->
+  <div *ngIf="selectedValue === 'option1'">
+    <ng-container *ngTemplateOutlet="messageTemplate"></ng-container>
+  </div>
+
+  <!-- ngSwitch Example -->
+  <div [ngSwitch]="selectedValue">
+    <div *ngSwitchCase="'option1'">Option 1 is selected!</div>
+    <div *ngSwitchCase="'option2'">Option 2 is selected!</div>
+    <div *ngSwitchDefault>Select an option</div>
+  </div>
+
+  <br>
+
+  <!-- @Input Example (Receive message from Parent) -->
+  <div>
+    <p>{{ parentMessage }}</p>
+  </div>
+
+  <!-- @ViewChild Example (Access the message input field) -->
+  <div>
+    <label for="inputMessage">Enter Message:</label>
+    <input id="inputMessage" #message type="text" (input)="changeMessage()">
+    <p>Message entered: {{ message }}</p>
+  </div>
+
+  <br>
+
+  <!-- @Output and EventEmitter Example (Emit event to parent) -->
+  <div>
+    <button (click)="emitEvent()">Emit Event to Parent</button>
+    <p>{{ message }}</p>
+  </div>
+
+  <!-- Listen for the emitted event -->
+  <div>
+    <app-child (childEvent)="message = $event"></app-child>
+  </div>
+</div>
+ 
+import { Component, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'app-child',
+  template: `
+    <div class="container">
+      <h2>Child Component</h2>
+      <button (click)="sendMessage()">Send Message to Parent</button>
+    </div>
+  `,
+  styleUrls: ['./child.component.css']
+})
+export class ChildComponent {
+  @Output() childEvent = new EventEmitter<string>(); // EventEmitter to send data to parent
+
+  sendMessage() {
+    this.childEvent.emit('Message from child component');  // Emit an event to parent
+  }
+}
+
+child.component.html:
+
+<div class="container">
+  <h2>Child Component</h2>
+  <button (click)="sendMessage()">Send Message to Parent</button>
+</div>
+
 ======================================================================Angular Material Control, AG grid=========================================================
 
 1. App Module (app.module.ts)
@@ -4284,4 +4683,61 @@ button {  margin-top: 20px;}
 .edit-btn {  background-color: #007bff;  color: white;  border: none;  padding: 5px;  cursor: pointer;}
 .delete-btn {  background-color: #dc3545;  color: white;  border: none;  padding: 5px;  cursor: pointer;}
 .edit-btn:hover,.delete-btn:hover {  opacity: 0.7;}
-----------------------------------------------------------------------------------------------------------------------------------------------------
+
+===================================================================Scaffold===================================================================
+
+
+Command					: Scaffold-DbContext	
+Description  			: Generates models and a DbContext from an existing database.	
+Syntax					: Scaffold-DbContext "ConnectionString" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Context MyDbContext	
+Optional Parameters		:  -OutputDir Models, -Context MyDbContext, -DataAnnotations (optional)
+Ex: Scaffold-DbContext "Server=myServerAddress;Database=myDataBase;User Id=myUsername;Password=myPassword;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Context MyDbContext -DataAnnotations -Force
+
+
+Command					: Add-Migration
+Description  			: Creates a new migration to apply changes to the database schema.
+Syntax					: Add-Migration MigrationName
+Optional Parameters		:
+
+Command					: Update-Database
+Description  			: Applies the pending migrations to the database.
+Syntax					: Update-Database
+Optional Parameters		: -Migration MigrationName (optional), -Force (optional)
+
+Command					: Remove-Migration
+Description  			: Removes the last migration.
+Syntax					: Remove-Migration
+Optional Parameters		: -Force (optional)
+
+Command					: Script-Migration
+Description  			: Generates a SQL script for the migrations.
+Syntax					: Script-Migration
+Optional Parameters		: -From MigrationName, -To MigrationName
+
+Command					: Enable-Migrations
+Description  			: Enables migrations for the current project (EF 6 only).
+Syntax					: Enable-Migrations
+Optional Parameters		: -ContextTypeName YourDbContext (optional for custom DbContext)
+
+Command					: Generate-CreateTable-SQL
+Description  			: Generates a SQL script for creating tables based on the model (EF 6 only).
+Syntax					: Generate-CreateTable-SQL
+Optional Parameters		:
+
+Command					: Scaffold-Identity-UI
+Description  			: Scaffolds Identity UI pages for user authentication and authorization (EF Core).
+Syntax					: Scaffold-Identity-UI
+Optional Parameters		:
+
+Command					: Scaffold-DbContext with a Filter
+Description  			: Scaffold DbContext and filter by specific tables.
+Syntax					: Scaffold-DbContext "ConnectionString" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models -Context MyDbContext -Tables "Table1", "Table2"
+Optional Parameters		: -Tables "Table1", "Table2"
+
+ex: 
+Scaffold-DbContext 'Data Source=(local); Initital Catalog=Coredb; user id=XX; password=XX' Microsoft.entityFrameworkCore.SqlServer -OutputDir models
+
+Scaffold-DbContext "Server=MYSQL8003.site4now.net;Database=db_a94bc9_affi;Uid=XX;Pwd=XX" MySql.EntityFrameworkCore -OutputDir Models
+==============================================================C#=========================================================
+https://www.sanfoundry.com/csharp-programming-examples/
+https://dotnettutorials.net/course/csharp-dot-net-programs/
