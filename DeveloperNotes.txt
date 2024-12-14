@@ -92,6 +92,13 @@ git reset --hard <commit-hash> – Hard reset
 git tag <tag-name> – Create a tag
 git push --tags – Push tags to remote
 git clone <URL> – Clone a repository
+
+git init
+git add README.md
+git commit -m "first commit"
+git branch -M main
+git remote add origin https://github.com/codewithtarunchugh/AngularBaseAdminLTE.git
+git push -u origin main
 ===========================================================================Git End------------------------------------------------------------------------------
 
 =======================================================================================SQL Query ========================================================================
@@ -195,7 +202,9 @@ ADD CONSTRAINT DF_Employee_Salary DEFAULT 50000 FOR Salary;
 ALTER TABLE Employees
 DROP COLUMN Birthdate;
 
-
+ex : 
+ALTER TABLE Categories
+ADD fontImage NVARCHAR(100) NULL;
 
 ========================================================================Remove Duplicate and Accociated  Records, temp table==========================================================
 -- Step 1: Create a temporary table to hold duplicate questions
@@ -4236,13 +4245,18 @@ npm i @angular/cli@16.2.1 or npm i @angular/cli@16
 ng version
 node --version or node -v
 
+// To install material
+ ng add @angular/material
+
 ng serve
 ng build
+ng cache clean
 
 (to run someone's project code. this will auto install all dependency)
 npm install
 ng update @angular/cli @angular/core     (to update your angular version)
 
+npm install jquery apexcharts jsvectormap sortablejs overlayscrollbars summernote
 
 https://voidchetan.github.io/interview_question_app_angular_17/home
 https://miniprojectideas.com/logicalScenarios.html#
